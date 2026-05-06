@@ -53,13 +53,13 @@ git clone https://github.com/YOUR_NAME/veilpay-frontier.git
 cd veilpay-frontier
 
 # Install
-npm install
+bun install
 
 # Dev server (uses Devnet by default)
-npm run dev
+bun run dev
 
 # Build for production
-npm run build
+bun run build
 ```
 
 ### CSV Format
