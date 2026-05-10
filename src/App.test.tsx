@@ -1,3 +1,4 @@
+import './happy-dom-setup';
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';

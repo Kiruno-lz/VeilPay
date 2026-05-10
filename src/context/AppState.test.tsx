@@ -1,3 +1,4 @@
+import '../happy-dom-setup';
 import React from 'react';
 import { describe, it, expect } from 'bun:test';
 import { render, act } from '@testing-library/react';
