@@ -12,6 +12,12 @@ const window = new Window({ url: 'http://localhost' });
 global.document = window.document as unknown as Document;
 global.window = window as unknown as Window & typeof globalThis;
 
+// Ensure document.body exists for @testing-library/dom screen queries
+if (!document.body) {
+  const body = document.createElement('body');
+  document.appendChild(body);
+}
+
 // Expose common DOM globals
 global.HTMLElement = window.HTMLElement as unknown as typeof HTMLElement;
 global.Element = window.Element as unknown as typeof Element;
