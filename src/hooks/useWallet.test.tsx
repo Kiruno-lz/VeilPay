@@ -1,3 +1,4 @@
+import '../happy-dom-setup';
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { renderHook, act } from '@testing-library/react';
 import { useWallet } from './useWallet';
