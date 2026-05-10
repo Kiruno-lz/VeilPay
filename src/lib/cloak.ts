@@ -18,7 +18,13 @@ import {
   NATIVE_SOL_MINT,
   type Utxo,
 } from '@cloak.dev/sdk';
-import { Connection, Keypair } from '@solana/web3.js';
+// Bun's mock.module() is file-scoped but persists across the process, so other
+// test files that mock @solana/web3.js leak their mock into this module. By
+// dynamically importing with a cache-busting query string we bypass the mock
+// and guarantee that CloakSDK always uses the authentic Solana Connection
+// regardless of test mocking order.
+const { Connection: SolanaConnection } = await import('@solana/web3.js?bust=cloak');
+import type { Keypair } from '@solana/web3.js';
 import type {
   CloakSDKConfig,
   DepositParams,
@@ -59,7 +65,7 @@ function uint8ArrayToHex(arr: Uint8Array): string {
  */
 export class CloakSDK {
   private config: CloakSDKConfig;
-  private connection: Connection;
+  private connection: any;
   private signer: Keypair | null = null;
   private programId = CLOAK_PROGRAM_ID;
   private cachedKeys: ReturnType<typeof generateCloakKeys> | null = null;
@@ -92,12 +98,12 @@ export class CloakSDK {
     this.connection = this._createConnection(network);
   }
 
-  private _createConnection(network: string): Connection {
+  private _createConnection(network: string): any {
     const rpcUrl =
       network === 'devnet'
         ? 'https://api.devnet.solana.com'
         : 'https://api.mainnet-beta.solana.com';
-    return new Connection(rpcUrl, 'confirmed');
+    return new (SolanaConnection as any)(rpcUrl, 'confirmed');
   }
 
   /** Wrap a promise with a timeout and throw a clear error message. */
