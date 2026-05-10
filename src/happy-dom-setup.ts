@@ -1,6 +1,4 @@
 import { Window } from 'happy-dom';
-import { cleanup } from '@testing-library/react';
-import { afterEach } from 'bun:test';
 
 const window = new Window({ url: 'http://localhost' });
 
@@ -23,12 +21,3 @@ global.HTMLElement = window.HTMLElement as unknown as typeof HTMLElement;
 global.Element = window.Element as unknown as typeof Element;
 global.Node = window.Node as unknown as typeof Node;
 global.DocumentFragment = window.DocumentFragment as unknown as typeof DocumentFragment;
-
-// Auto-cleanup after each test and clear document.body
-afterEach(() => {
-  cleanup();
-  // Clear body after cleanup to ensure no leftover elements
-  while (document.body.firstChild) {
-    document.body.removeChild(document.body.firstChild);
-  }
-});
