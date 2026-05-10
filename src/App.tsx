@@ -1,8 +1,17 @@
+import { Routes, Route } from 'react-router-dom'
+import AdminPage from './pages/AdminPage'
+import ClaimPage from './pages/ClaimPage'
+import AuditPage from './pages/AuditPage'
+import NotFoundPage from './pages/NotFoundPage'
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <h1 className="text-4xl font-bold">VeilPay</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<AdminPage />} />
+      <Route path="/claim" element={<ClaimPage />} />
+      <Route path="/audit" element={<AuditPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   )
 }
 
