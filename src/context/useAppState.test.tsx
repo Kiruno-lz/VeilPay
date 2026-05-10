@@ -20,8 +20,14 @@ describe('useAppState', () => {
   });
 
   it('should throw error when used outside AppStateProvider', () => {
-    expect(() => {
-      renderHook(() => useAppState());
-    }).toThrow('useAppState must be used within an AppStateProvider');
+    const originalError = console.error;
+    console.error = () => {};
+    try {
+      expect(() => {
+        renderHook(() => useAppState());
+      }).toThrow('useAppState must be used within an AppStateProvider');
+    } finally {
+      console.error = originalError;
+    }
   });
 });

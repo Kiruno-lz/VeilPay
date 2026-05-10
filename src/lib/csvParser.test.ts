@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parsePayrollCSV, ParseResult } from './csvParser';
+import { parsePayrollCSV } from './csvParser';
 
 describe('parsePayrollCSV', () => {
   it('should parse valid CSV with address,amount header', () => {

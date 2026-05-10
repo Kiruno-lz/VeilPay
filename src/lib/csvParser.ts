@@ -87,7 +87,7 @@ export function parsePayrollCSV(csvContent: string): ParseResult {
     try {
       const amount = parseAmount(amountStr);
       recipients.push({ address, amount });
-    } catch (e) {
+    } catch {
       errors.push(`Invalid amount: ${amountStr}`);
     }
   }

@@ -22,7 +22,10 @@ mock.module('@solana/wallet-adapter-react', () => ({
 function renderWithProvider(initialEntries: string[]) {
   return render(
     <AppStateProvider>
-      <MemoryRouter initialEntries={initialEntries}>
+      <MemoryRouter
+        initialEntries={initialEntries}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     </AppStateProvider>

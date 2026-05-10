@@ -5,21 +5,28 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: 5173,
-  },
   resolve: {
     alias: {
-      // Redirect Node.js built-ins to ESM shims
-      events: path.resolve(__dirname, 'src/lib/shims/events.js'),
-      'inherits': path.resolve(__dirname, 'src/lib/shims/inherits.js'),
-      'util': path.resolve(__dirname, 'src/lib/shims/util.js'),
-      'stream': path.resolve(__dirname, 'src/lib/shims/stream.js'),
-      'buffer': path.resolve(__dirname, 'src/lib/shims/buffer.js'),
+      // Node.js built-in polyfills via npm packages
+      buffer: 'buffer/',
+      events: 'events',
+      stream: 'stream-browserify',
+      util: 'util',
+      inherits: 'inherits/inherits_browser.js',
+      // Fallback to custom shims for ledgerhq packages
       'elliptic': path.resolve(__dirname, 'src/lib/shims/elliptic.js'),
     },
   },
+  define: {
+    global: 'globalThis',
+    'process.env': {
+      NODE_ENV: '"production"',
+    },
+    'process.browser': true,
+    Buffer: ['buffer', 'Buffer'],
+  },
   optimizeDeps: {
+    include: ['buffer', 'events', 'inherits'],
     exclude: [
       // Exclude packages that import Node.js built-ins
       '@ledgerhq/hw-transport',
@@ -29,9 +36,7 @@ export default defineConfig({
       'elliptic',
     ],
   },
-  define: {
-    // Fix for packages that check for process.env
-    'process.env': {},
-    global: 'globalThis',
+  server: {
+    port: 5173,
   },
 })
