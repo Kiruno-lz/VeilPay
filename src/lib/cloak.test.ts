@@ -132,6 +132,7 @@ describe('CloakSDK timeout handling', () => {
     const sdk = new CloakSDK({ network: 'devnet' });
     
     // Access private method for testing using type assertion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const withTimeout = (sdk as any)._withTimeout.bind(sdk);
     
     const slowPromise = new Promise((resolve) => setTimeout(resolve, 1000));
@@ -143,6 +144,7 @@ describe('CloakSDK timeout handling', () => {
 
   it('should complete successfully when promise resolves before timeout', async () => {
     const sdk = new CloakSDK({ network: 'devnet' });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const withTimeout = (sdk as any)._withTimeout.bind(sdk);
     
     const fastPromise = Promise.resolve({ success: true });
@@ -153,6 +155,7 @@ describe('CloakSDK timeout handling', () => {
 
   it('timeout error message should include network name', async () => {
     const sdk = new CloakSDK({ network: 'mainnet' });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const withTimeout = (sdk as any)._withTimeout.bind(sdk);
     
     const slowPromise = new Promise((resolve) => setTimeout(resolve, 1000));

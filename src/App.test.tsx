@@ -6,7 +6,7 @@ import App from './App';
 describe('App routing', () => {
   it('should render AdminPage at /', () => {
     const { getByTestId } = render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </MemoryRouter>
     );
@@ -15,7 +15,7 @@ describe('App routing', () => {
 
   it('should render ClaimPage at /claim with query param', () => {
     const { getByTestId } = render(
-      <MemoryRouter initialEntries={['/claim?token=eyJhbG...']}>
+      <MemoryRouter initialEntries={['/claim?token=eyJhbG...']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </MemoryRouter>
     );
@@ -24,7 +24,7 @@ describe('App routing', () => {
 
   it('should render AuditPage at /audit', () => {
     const { getByTestId } = render(
-      <MemoryRouter initialEntries={['/audit']}>
+      <MemoryRouter initialEntries={['/audit']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </MemoryRouter>
     );
@@ -33,7 +33,7 @@ describe('App routing', () => {
 
   it('should render NotFoundPage for unknown routes', () => {
     const { getByTestId } = render(
-      <MemoryRouter initialEntries={['/unknown']}>
+      <MemoryRouter initialEntries={['/unknown']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </MemoryRouter>
     );
