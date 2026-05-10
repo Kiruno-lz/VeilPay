@@ -94,3 +94,71 @@ describe('CloakSDK (mock mode)', () => {
     expect(mainnetResult.txHash.length).toBe(44);
   });
 });
+
+describe('CloakSDK network switching', () => {
+  it('should start with devnet endpoint', () => {
+    const sdk = new CloakSDK({ network: 'devnet' });
+    expect(sdk.network).toBe('devnet');
+    expect(sdk.endpoint).toBe('https://api.devnet.solana.com');
+  });
+
+  it('should start with mainnet endpoint', () => {
+    const sdk = new CloakSDK({ network: 'mainnet' });
+    expect(sdk.network).toBe('mainnet');
+    expect(sdk.endpoint).toBe('https://api.mainnet-beta.solana.com');
+  });
+
+  it('should switch from devnet to mainnet dynamically', () => {
+    const sdk = new CloakSDK({ network: 'devnet' });
+    expect(sdk.endpoint).toBe('https://api.devnet.solana.com');
+
+    sdk.setNetwork('mainnet');
+    expect(sdk.network).toBe('mainnet');
+    expect(sdk.endpoint).toBe('https://api.mainnet-beta.solana.com');
+  });
+
+  it('should switch from mainnet to devnet dynamically', () => {
+    const sdk = new CloakSDK({ network: 'mainnet' });
+    expect(sdk.endpoint).toBe('https://api.mainnet-beta.solana.com');
+
+    sdk.setNetwork('devnet');
+    expect(sdk.network).toBe('devnet');
+    expect(sdk.endpoint).toBe('https://api.devnet.solana.com');
+  });
+});
+
+describe('CloakSDK timeout handling', () => {
+  it('should expose _withTimeout that throws clear error on timeout', async () => {
+    const sdk = new CloakSDK({ network: 'devnet' });
+    
+    // Access private method for testing using type assertion
+    const withTimeout = (sdk as any)._withTimeout.bind(sdk);
+    
+    const slowPromise = new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    await expect(withTimeout(slowPromise, 'testOperation', 100)).rejects.toThrow(
+      'Network timeout: testOperation failed to complete on devnet within 0.1s'
+    );
+  });
+
+  it('should complete successfully when promise resolves before timeout', async () => {
+    const sdk = new CloakSDK({ network: 'devnet' });
+    const withTimeout = (sdk as any)._withTimeout.bind(sdk);
+    
+    const fastPromise = Promise.resolve({ success: true });
+    const result = await withTimeout(fastPromise, 'fastOperation', 5000);
+    
+    expect(result).toEqual({ success: true });
+  });
+
+  it('timeout error message should include network name', async () => {
+    const sdk = new CloakSDK({ network: 'mainnet' });
+    const withTimeout = (sdk as any)._withTimeout.bind(sdk);
+    
+    const slowPromise = new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    await expect(withTimeout(slowPromise, 'deposit', 50)).rejects.toThrow(
+      'mainnet'
+    );
+  });
+});

@@ -63,21 +63,61 @@ export class CloakSDK {
   private signer: Keypair | null = null;
   private programId = CLOAK_PROGRAM_ID;
   private cachedKeys: ReturnType<typeof generateCloakKeys> | null = null;
+  private static readonly DEFAULT_TIMEOUT_MS = 30000;
 
   constructor(config: CloakSDKConfig & { signer?: Keypair }) {
     this.config = config;
     this.signer = config.signer ?? null;
-
-    const rpcUrl =
-      config.network === 'devnet'
-        ? 'https://api.devnet.solana.com'
-        : 'https://api.mainnet-beta.solana.com';
-    this.connection = new Connection(rpcUrl, 'confirmed');
+    this.connection = this._createConnection(config.network);
   }
 
   /** Whether the SDK is backed by a real signer (live mode) or mock (fallback mode). */
   get isLive(): boolean {
     return this.signer !== null;
+  }
+
+  /** Get the current network endpoint URL. */
+  get endpoint(): string {
+    return this.connection.rpcEndpoint;
+  }
+
+  /** Get the current network name. */
+  get network(): string {
+    return this.config.network;
+  }
+
+  /** Switch network and recreate the connection. */
+  setNetwork(network: string): void {
+    this.config = { ...this.config, network };
+    this.connection = this._createConnection(network);
+  }
+
+  private _createConnection(network: string): Connection {
+    const rpcUrl =
+      network === 'devnet'
+        ? 'https://api.devnet.solana.com'
+        : 'https://api.mainnet-beta.solana.com';
+    return new Connection(rpcUrl, 'confirmed');
+  }
+
+  /** Wrap a promise with a timeout and throw a clear error message. */
+  private async _withTimeout<T>(
+    promise: Promise<T>,
+    operation: string,
+    timeoutMs: number = CloakSDK.DEFAULT_TIMEOUT_MS
+  ): Promise<T> {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      const timer = setTimeout(() => {
+        clearTimeout(timer);
+        reject(
+          new Error(
+            `Network timeout: ${operation} failed to complete on ${this.config.network} within ${timeoutMs / 1000}s`
+          )
+        );
+      }, timeoutMs);
+    });
+
+    return Promise.race([promise, timeoutPromise]);
   }
 
   /** Deposit tokens into the Cloak shield pool. */
@@ -95,20 +135,23 @@ export class CloakSDK {
     const amountLamports = BigInt(Math.floor(params.amount * 1e9));
     const outputUtxo = await this._createUtxo(amountLamports);
 
-    const result = await transact(
-      {
-        inputUtxos: [zeroUtxo],
-        outputUtxos: [outputUtxo],
-        externalAmount: amountLamports,
-        depositor: this.signer.publicKey,
-      },
-      {
-        connection: this.connection,
-        programId: this.programId,
-        depositorKeypair: this.signer,
-        relayUrl: this.config.relayerEndpoint,
-        onProgress: (status) => console.log(`[CloakSDK] deposit: ${status}`),
-      }
+    const result = await this._withTimeout(
+      transact(
+        {
+          inputUtxos: [zeroUtxo],
+          outputUtxos: [outputUtxo],
+          externalAmount: amountLamports,
+          depositor: this.signer.publicKey,
+        },
+        {
+          connection: this.connection,
+          programId: this.programId,
+          depositorKeypair: this.signer,
+          relayUrl: this.config.relayerEndpoint,
+          onProgress: (status) => console.log(`[CloakSDK] deposit: ${status}`),
+        }
+      ),
+      'deposit'
     );
 
     return { txHash: result.signature };
@@ -151,8 +194,11 @@ export class CloakSDK {
     }
 
     const keys = this._ensureKeys();
-    const viewingKey = deriveViewingKeyFromUtxoPrivateKey(
-      BigInt('0x' + keys.spend.sk_spend_hex)
+    const viewingKey = await this._withTimeout(
+      Promise.resolve(
+        deriveViewingKeyFromUtxoPrivateKey(BigInt('0x' + keys.spend.sk_spend_hex))
+      ),
+      'generateViewingKey'
     );
 
     // Serialize the viewing key along with scope and expiry metadata
@@ -181,12 +227,15 @@ export class CloakSDK {
     const keys = this._ensureKeys();
     const nk = getNkFromUtxoPrivateKey(BigInt('0x' + keys.spend.sk_spend_hex));
 
-    const scan = await scanTransactions({
-      connection: this.connection,
-      programId: this.programId,
-      viewingKeyNk: nk,
-      walletPublicKey: this.signer.publicKey.toBase58(),
-    });
+    const scan = await this._withTimeout(
+      scanTransactions({
+        connection: this.connection,
+        programId: this.programId,
+        viewingKeyNk: nk,
+        walletPublicKey: this.signer.publicKey.toBase58(),
+      }),
+      'decryptHistory'
+    );
 
     return scan.transactions.map((tx) => ({
       date: new Date(Number(tx.timestamp)),
