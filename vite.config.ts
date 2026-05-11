@@ -23,7 +23,6 @@ export default defineConfig({
       NODE_ENV: '"production"',
     },
     'process.browser': true,
-    Buffer: ['buffer', 'Buffer'],
   },
   optimizeDeps: {
     include: ['buffer', 'events', 'inherits'],

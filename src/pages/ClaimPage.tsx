@@ -3,13 +3,12 @@ import { useSearchParams } from 'react-router-dom'
 import {
   Shield,
   Wallet,
-  CheckCircle,
   AlertCircle,
-  ArrowDownLeft,
-  ExternalLink,
-  Loader2,
 } from 'lucide-react'
 import { useWallet } from '../hooks/useWallet'
+import { ClaimDetails } from '../components/ClaimDetails'
+import { ClaimButton } from '../components/ClaimButton'
+import type { ClaimPayload } from '../lib/claimLink'
 
 function truncateToken(token: string, start = 8, end = 8): string {
   if (token.length <= start + end + 3) return token
@@ -28,13 +27,11 @@ function ClaimPage() {
 
   const { connected, publicKey, connect } = useWallet()
 
-  const [isClaiming, setIsClaiming] = useState(false)
-  const [claimStatus, setClaimStatus] = useState<'idle' | 'claiming' | 'success' | 'error'>('idle')
-  const [txSignature, setTxSignature] = useState<string | null>(null)
+  const [claimPayload, setClaimPayload] = useState<ClaimPayload | null>(null)
 
-  // Placeholder data — will be replaced by real JWT parsing in Phase C
-  const placeholderAmount = '1,234.56'
-  const placeholderSender = 'VeilPay Admin'
+  const handleValidClaim = useCallback((payload: ClaimPayload) => {
+    setClaimPayload(payload)
+  }, [])
 
   const handleConnectWallet = useCallback(async () => {
     try {
@@ -43,30 +40,6 @@ function ClaimPage() {
       // Wallet connection errors are handled by the adapter UI
     }
   }, [connect])
-
-  const handleClaim = useCallback(async () => {
-    if (!connected || !publicKey) return
-
-    setIsClaiming(true)
-    setClaimStatus('claiming')
-
-    // Placeholder claim logic — will be replaced by real CloakSDK.receive() in Phase C
-    try {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Mock successful claim
-      const mockTxSignature =
-        '5xT7pQmN3vW8rK2jH9sL4dF6gH1kM0nB3cV5xZ7qW9eR2tY4uI6oP8aS0dF2gH4jK6lM8nB0vC2xZ4qW6eR8tY0uI2oP4aS6dF8gH0jK'
-
-      setTxSignature(mockTxSignature)
-      setClaimStatus('success')
-    } catch {
-      setClaimStatus('error')
-    } finally {
-      setIsClaiming(false)
-    }
-  }, [connected, publicKey])
 
   // ── Error state: no token ───────────────────────────────────────────────
   if (!token) {
@@ -126,26 +99,8 @@ function ClaimPage() {
         </div>
 
         {/* Amount Display */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-              <ArrowDownLeft className="w-6 h-6 text-green-400" />
-            </div>
-          </div>
-          <div className="text-center mb-4">
-            <p className="text-gray-400 text-sm mb-1">You are receiving</p>
-            <p className="text-3xl font-bold text-white" data-testid="claim-amount">
-              {placeholderAmount} USDC
-            </p>
-          </div>
-          <div className="border-t border-gray-700 pt-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">From</span>
-              <span className="text-sm text-white font-medium" data-testid="claim-sender">
-                {placeholderSender}
-              </span>
-            </div>
-          </div>
+        <div className="mb-6">
+          <ClaimDetails token={token} onValid={handleValidClaim} />
         </div>
 
         {/* Wallet Connection */}
@@ -185,87 +140,10 @@ function ClaimPage() {
         </div>
 
         {/* Claim Button */}
-        {claimStatus !== 'success' && (
-          <div className="mb-6">
-            <button
-              onClick={handleClaim}
-              disabled={!connected || isClaiming}
-              className={`w-full py-4 px-6 font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
-                !connected || isClaiming
-                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-60'
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-              }`}
-              data-testid="claim-button"
-            >
-              {isClaiming ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Claiming...
-                </>
-              ) : (
-                <>
-                  <Shield className="w-5 h-5" />
-                  Claim USDC
-                </>
-              )}
-            </button>
-
-            {/* Status text */}
-            <div className="mt-3 text-center">
-              {claimStatus === 'claiming' && (
-                <p className="text-sm text-indigo-400" data-testid="claim-status">
-                  Processing your claim...
-                </p>
-              )}
-              {claimStatus === 'error' && (
-                <p className="text-sm text-red-400" data-testid="claim-status">
-                  Claim failed. Please try again.
-                </p>
-              )}
-              {!connected && (
-                <p className="text-sm text-gray-500" data-testid="claim-status">
-                  Connect your wallet to claim
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Success State */}
-        {claimStatus === 'success' && (
-          <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-green-500/20">
-            <div className="flex justify-center mb-4">
-              <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle className="w-7 h-7 text-green-400" />
-              </div>
-            </div>
-            <div className="text-center mb-4">
-              <h2 className="text-xl font-bold text-white mb-1">Received!</h2>
-              <p className="text-gray-400 text-sm">Check your wallet.</p>
-            </div>
-
-            {txSignature && (
-              <div className="bg-gray-700/50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-400">Transaction</span>
-                  <a
-                    href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
-                    data-testid="tx-signature-link"
-                  >
-                    View on Explorer
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-                <p className="font-mono text-xs text-gray-300 break-all">
-                  {truncateToken(txSignature, 16, 16)}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+        <ClaimButton
+          commitment={claimPayload?.commitment ?? ''}
+          note={claimPayload?.note ?? ''}
+        />
 
         {/* Footer info */}
         <div className="text-center">
