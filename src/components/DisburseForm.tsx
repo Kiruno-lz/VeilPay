@@ -17,6 +17,7 @@ function DisburseForm({ className }: DisburseFormProps) {
 
   const [errorRecipient, setErrorRecipient] = useState<Recipient | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const isDisbursing = disbursement.status === 'disbursing';
   const canDisburse = recipients.length > 0 && connected && !isDisbursing;
@@ -135,6 +136,16 @@ function DisburseForm({ className }: DisburseFormProps) {
     dispatch({ type: 'SET_DISBURSEMENT_STATUS', payload: 'completed' });
   }, [errorRecipient, disbursement.progress, recipients, dispatch, processRecipient]);
 
+  const handleCopyLink = useCallback(async (url: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch {
+      // Fallback: silently ignore copy errors
+    }
+  }, []);
+
   const progressPercent =
     recipients.length > 0
       ? Math.round((disbursement.progress / recipients.length) * 100)
@@ -168,6 +179,7 @@ function DisburseForm({ className }: DisburseFormProps) {
                   <li
                     key={index}
                     className="flex justify-between items-center text-sm"
+                    data-testid={`recipient-${index}`}
                   >
                     <span className="text-gray-400 font-mono">
                       {recipient.address.slice(0, 8)}...{recipient.address.slice(-8)}
@@ -200,10 +212,33 @@ function DisburseForm({ className }: DisburseFormProps) {
           )}
 
           {disbursement.status === 'completed' && (
-            <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-4" data-testid="completed-message">
-              <p className="text-green-400 text-sm">
+            <div className="mb-4" data-testid="completed-section">
+              <p className="text-green-400 text-sm mb-2" data-testid="completion-message">
                 Disbursement completed! {disbursement.claimLinks.length} claim link{disbursement.claimLinks.length !== 1 ? 's' : ''} generated.
               </p>
+              <div className="space-y-2">
+                <p className="text-gray-300 text-sm font-semibold">Claim Links:</p>
+                {disbursement.claimLinks.map((link, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-gray-700 rounded-lg p-2"
+                    data-testid={`claim-link-${index}`}
+                  >
+                    <button
+                      onClick={() => handleCopyLink(link.url, index)}
+                      className="flex-1 text-left text-sm text-blue-400 hover:text-blue-300 truncate font-mono"
+                      title="Click to copy"
+                    >
+                      {link.recipient} — {(link.amount / 1_000_000).toFixed(2)} USDC
+                    </button>
+                    {copiedIndex === index && (
+                      <span className="text-green-400 text-xs" data-testid={`copied-${index}`}>
+                        Copied!
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -245,6 +280,12 @@ function DisburseForm({ className }: DisburseFormProps) {
             >
               {isDisbursing ? 'Disbursing...' : 'Disburse'}
             </button>
+          )}
+
+          {!connected && recipients.length > 0 && disbursement.status === 'idle' && (
+            <p className="text-gray-400 text-sm mt-2 text-center" data-testid="connect-wallet-message">
+              Connect wallet to disburse
+            </p>
           )}
         </div>
       </div>
