@@ -4,22 +4,21 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import { ClaimButton } from './ClaimButton';
 import { AppStateProvider } from '../context/AppState';
 
-// ── Mock @solana/wallet-adapter-react ────────────────────────────────────
+// ── Mock the custom useWallet hook directly ───────────────────────────────
 const mockConnect = mock(() => Promise.resolve());
 const mockDisconnect = mock(() => Promise.resolve());
-const mockSelect = mock(() => {});
+const mockSelectWallet = mock(() => {});
 
 let mockWalletState = {
   connected: false,
-  publicKey: null as { toBase58: () => string } | null,
-  wallet: null as { adapter: { name: string } } | null,
-  wallets: [],
+  publicKey: null as string | null,
+  walletName: null as string | null,
   connect: mockConnect,
   disconnect: mockDisconnect,
-  select: mockSelect,
+  selectWallet: mockSelectWallet,
 };
 
-mock.module('@solana/wallet-adapter-react', () => ({
+mock.module('../hooks/useWallet', () => ({
   useWallet: () => mockWalletState,
 }));
 
@@ -28,7 +27,7 @@ const mockReceive = mock(() => Promise.resolve({ txHash: 'mock-tx-hash-12345' })
 
 mock.module('../lib/cloak', () => ({
   CloakSDK: class MockCloakSDK {
-    constructor() {}
+    constructor(_config: any) {}
     receive = mockReceive;
   },
 }));
@@ -47,11 +46,10 @@ describe('ClaimButton', () => {
     mockWalletState = {
       connected: false,
       publicKey: null,
-      wallet: null,
-      wallets: [],
+      walletName: null,
       connect: mockConnect,
       disconnect: mockDisconnect,
-      select: mockSelect,
+      selectWallet: mockSelectWallet,
     };
     mockConnect.mockClear();
     mockReceive.mockClear();
@@ -68,12 +66,6 @@ describe('ClaimButton', () => {
     });
 
     it('calls connect when connect button is clicked', async () => {
-      // Set wallet so connect() doesn't throw "No wallet selected"
-      mockWalletState = {
-        ...mockWalletState,
-        wallet: { adapter: { name: 'Phantom' } },
-      };
-
       const { getByTestId } = render(
         <ClaimButton {...defaultProps} />,
         { wrapper }
@@ -98,8 +90,8 @@ describe('ClaimButton', () => {
       mockWalletState = {
         ...mockWalletState,
         connected: true,
-        publicKey: { toBase58: () => '7x9k2LmNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYz' },
-        wallet: { adapter: { name: 'Phantom' } },
+        publicKey: '7x9k2LmNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYz',
+        walletName: 'Phantom',
       };
     });
 
@@ -255,8 +247,8 @@ describe('ClaimButton', () => {
       mockWalletState = {
         ...mockWalletState,
         connected: true,
-        publicKey: { toBase58: () => 'abc' },
-        wallet: { adapter: { name: 'Phantom' } },
+        publicKey: 'abc',
+        walletName: 'Phantom',
       };
     });
 

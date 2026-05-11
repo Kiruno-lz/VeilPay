@@ -12,6 +12,7 @@ const MOCK_PUBLIC_KEY = 'MockPublicKey123';
 let mockWalletState = {
   connected: false,
   publicKey: null as { toBase58: () => string } | null,
+  signTransaction: null as ((tx: any) => Promise<any>) | null,
 };
 
 mock.module('@solana/wallet-adapter-react', () => ({
@@ -36,7 +37,7 @@ const mockDeposit = mock(() => Promise.resolve({ txHash: 'mock-deposit-tx-hash-1
 
 mock.module('../lib/cloak', () => ({
   CloakSDK: class MockCloakSDK {
-    constructor() {}
+    constructor(_config: any) {}
     deposit = mockDeposit;
   },
 }));
@@ -54,6 +55,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: false,
       publicKey: null,
+      signTransaction: null,
     };
     mockRefresh.mockClear();
   });
@@ -62,6 +64,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByTestId, getByPlaceholderText, getByRole } = render(
@@ -83,6 +86,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByText } = render(<DepositCard />, { wrapper });
@@ -93,6 +97,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(
@@ -113,6 +118,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -131,6 +137,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -149,6 +156,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByText, getByPlaceholderText, container, getByRole } = render(<DepositCard />, { wrapper });
@@ -171,6 +179,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -196,6 +205,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -215,6 +225,7 @@ describe('DepositCard', () => {
     mockWalletState = {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
+      signTransaction: async (tx: any) => tx,
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
