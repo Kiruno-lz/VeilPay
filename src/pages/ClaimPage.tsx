@@ -5,11 +5,12 @@ import {
   Wallet,
   CheckCircle,
   AlertCircle,
-  ArrowDownLeft,
   ExternalLink,
   Loader2,
 } from 'lucide-react'
 import { useWallet } from '../hooks/useWallet'
+import { ClaimDetails } from '../components/ClaimDetails'
+import type { ClaimPayload } from '../lib/claimLink'
 
 function truncateToken(token: string, start = 8, end = 8): string {
   if (token.length <= start + end + 3) return token
@@ -31,10 +32,13 @@ function ClaimPage() {
   const [isClaiming, setIsClaiming] = useState(false)
   const [claimStatus, setClaimStatus] = useState<'idle' | 'claiming' | 'success' | 'error'>('idle')
   const [txSignature, setTxSignature] = useState<string | null>(null)
+  // HACKATHON: Will be used in C6 for actual claim transaction
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [claimPayload, setClaimPayload] = useState<ClaimPayload | null>(null)
 
-  // Placeholder data — will be replaced by real JWT parsing in Phase C
-  const placeholderAmount = '1,234.56'
-  const placeholderSender = 'VeilPay Admin'
+  const handleValidClaim = useCallback((payload: ClaimPayload) => {
+    setClaimPayload(payload)
+  }, [])
 
   const handleConnectWallet = useCallback(async () => {
     try {
@@ -126,26 +130,8 @@ function ClaimPage() {
         </div>
 
         {/* Amount Display */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-              <ArrowDownLeft className="w-6 h-6 text-green-400" />
-            </div>
-          </div>
-          <div className="text-center mb-4">
-            <p className="text-gray-400 text-sm mb-1">You are receiving</p>
-            <p className="text-3xl font-bold text-white" data-testid="claim-amount">
-              {placeholderAmount} USDC
-            </p>
-          </div>
-          <div className="border-t border-gray-700 pt-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">From</span>
-              <span className="text-sm text-white font-medium" data-testid="claim-sender">
-                {placeholderSender}
-              </span>
-            </div>
-          </div>
+        <div className="mb-6">
+          <ClaimDetails token={token} onValid={handleValidClaim} />
         </div>
 
         {/* Wallet Connection */}

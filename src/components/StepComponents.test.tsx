@@ -1,10 +1,15 @@
 import '../happy-dom-setup'
 import { describe, it, expect } from 'bun:test'
 import { render } from '@testing-library/react'
+import { AppStateProvider } from '../context/AppState'
 import UploadCSV from './UploadCSV'
 import DepositCard from './DepositCard'
 import DisburseForm from './DisburseForm'
 import AuditDashboard from './AuditDashboard'
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <AppStateProvider>{children}</AppStateProvider>
+)
 
 describe('UploadCSV', () => {
   it('renders with correct test id and placeholder text', () => {
@@ -60,19 +65,19 @@ describe('DisburseForm', () => {
 
 describe('AuditDashboard', () => {
   it('renders with correct test id and placeholder text', () => {
-    const { getByTestId, getByText } = render(<AuditDashboard />)
+    const { getByTestId, getByText } = render(<AuditDashboard />, { wrapper })
     expect(getByTestId('audit-dashboard')).toBeTruthy()
     expect(getByText('Viewing keys will appear here')).toBeTruthy()
     expect(getByText('4')).toBeTruthy()
   })
 
   it('has generate key button', () => {
-    const { getByRole } = render(<AuditDashboard />)
+    const { getByRole } = render(<AuditDashboard />, { wrapper })
     expect(getByRole('button', { name: 'Generate Key' })).toBeTruthy()
   })
 
   it('applies className prop', () => {
-    const { getByTestId } = render(<AuditDashboard className="custom-class" />)
+    const { getByTestId } = render(<AuditDashboard className="custom-class" />, { wrapper })
     expect(getByTestId('audit-dashboard').classList.contains('custom-class')).toBe(true)
   })
 })
