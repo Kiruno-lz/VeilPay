@@ -52,6 +52,9 @@ export interface AppState {
   
   audit: {
     viewingKeys: ViewingKey[];
+    transactions: TransactionRecord[];
+    decryptStatus: 'idle' | 'loading' | 'success' | 'error';
+    decryptError: string | null;
   };
   
   ui: {
@@ -73,6 +76,9 @@ export type AppAction =
   | { type: 'SET_CLAIM_LINKS'; payload: ClaimLink[] }
   | { type: 'ADD_VIEWING_KEY'; payload: ViewingKey }
   | { type: 'REVOKE_VIEWING_KEY'; payload: string }
+  | { type: 'SET_AUDIT_TRANSACTIONS'; payload: TransactionRecord[] }
+  | { type: 'SET_DECRYPT_STATUS'; payload: AppState['audit']['decryptStatus'] }
+  | { type: 'SET_DECRYPT_ERROR'; payload: string | null }
   | { type: 'SET_UI_STEP'; payload: number }
   | { type: 'SET_UI_LOADING'; payload: boolean }
   | { type: 'SET_UI_ERROR'; payload: string | null }
