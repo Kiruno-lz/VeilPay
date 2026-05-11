@@ -1,0 +1,20 @@
+# 错误地址案例
+# 包含非法字符（O, 0, I, l）、过短/过长地址、空地址
+# 预期结果：解析器应收集所有地址相关错误，但不中断解析
+address,amount
+# 包含非法字符 'O'
+7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsO,1.0
+# 包含非法字符 '0'
+7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAs0,1.0
+# 包含非法字符 'I'
+7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsI,1.0
+# 包含非法字符 'l'
+7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsl,1.0
+# 过短地址（31字符）
+1111111111111111111111111111111,1.0
+# 过长地址（45字符）
+111111111111111111111111111111111111111111111,1.0
+# 空地址
+,1.0
+# 有效地址作为对比
+Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,1.0

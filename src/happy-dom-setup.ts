@@ -21,3 +21,9 @@ global.HTMLElement = window.HTMLElement as unknown as typeof HTMLElement;
 global.Element = window.Element as unknown as typeof Element;
 global.Node = window.Node as unknown as typeof Node;
 global.DocumentFragment = window.DocumentFragment as unknown as typeof DocumentFragment;
+
+// Expose File/Blob constructors so FileReader works correctly in tests
+// (global.File and window.File must be the same instance for instanceof checks)
+global.File = window.File as unknown as typeof File;
+global.Blob = window.Blob as unknown as typeof Blob;
+global.FileReader = window.FileReader as unknown as typeof FileReader;

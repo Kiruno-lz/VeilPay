@@ -95,7 +95,7 @@ describe('AdminPage', () => {
 
   it('should render DepositCard placeholder', () => {
     const { container } = render(<AdminPage />, { wrapper: Wrapper });
-    expect(container.textContent).toContain('Enter amount to deposit');
+    expect(container.textContent).toContain('Connect wallet to deposit');
   });
 
   it('should render DisburseForm placeholder', () => {

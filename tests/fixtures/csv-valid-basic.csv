@@ -1,0 +1,7 @@
+# 基础正确案例
+# 包含2-3个有效的 Solana 地址和正常金额
+# 预期结果：解析器应成功识别所有行
+address,amount
+7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU,1.5
+Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,0.75
+EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,100.0

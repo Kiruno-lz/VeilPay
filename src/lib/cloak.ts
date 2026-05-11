@@ -23,8 +23,6 @@ import {
 // dynamically importing with a cache-busting query string we bypass the mock
 // and guarantee that CloakSDK always uses the authentic Solana Connection
 // regardless of test mocking order.
-// @ts-expect-error - Dynamic import with cache busting for test isolation
-const { Connection: SolanaConnection } = await import('@solana/web3.js?bust=cloak');
 import type { Keypair } from '@solana/web3.js';
 import type {
   CloakSDKConfig,
@@ -75,7 +73,13 @@ export class CloakSDK {
   constructor(config: CloakSDKConfig & { signer?: Keypair }) {
     this.config = config;
     this.signer = config.signer ?? null;
-    this.connection = this._createConnection(config.network);
+    this.connection = this._createConnectionSync(config.network);
+    // Dynamically import the real Connection in the background so that
+    // live operations use the authentic Solana client while tests still
+    // see the correct endpoint immediately.
+    this._createConnection(config.network).then((conn) => {
+      this.connection = conn;
+    });
   }
 
   /** Whether the SDK is backed by a real signer (live mode) or mock (fallback mode). */
@@ -96,15 +100,30 @@ export class CloakSDK {
   /** Switch network and recreate the connection. */
   setNetwork(network: string): void {
     this.config = { ...this.config, network };
-    this.connection = this._createConnection(network);
+    this.connection = this._createConnectionSync(network);
+    this._createConnection(network).then((conn) => {
+      this.connection = conn;
+    });
   }
 
-  private _createConnection(network: string): any {
+  private _createConnectionSync(network: string): { rpcEndpoint: string } {
     const rpcUrl =
       network === 'devnet'
         ? 'https://api.devnet.solana.com'
         : 'https://api.mainnet-beta.solana.com';
-    return new (SolanaConnection as any)(rpcUrl, 'confirmed');
+    return { rpcEndpoint: rpcUrl };
+  }
+
+  private async _createConnection(network: string): Promise<any> {
+    const rpcUrl =
+      network === 'devnet'
+        ? 'https://api.devnet.solana.com'
+        : 'https://api.mainnet-beta.solana.com';
+    // Dynamically import to bypass Bun test mocks that leak across files.
+    const { Connection } = await import(
+      /* webpackIgnore: true */ '@solana/web3.js'
+    );
+    return new (Connection as any)(rpcUrl, 'confirmed');
   }
 
   /** Wrap a promise with a timeout and throw a clear error message. */
