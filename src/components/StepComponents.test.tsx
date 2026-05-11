@@ -1,11 +1,29 @@
 import '../happy-dom-setup'
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, mock } from 'bun:test'
 import { render } from '@testing-library/react'
 import UploadCSV from './UploadCSV'
 import DepositCard from './DepositCard'
 import DisburseForm from './DisburseForm'
 import AuditDashboard from './AuditDashboard'
 import { AppStateProvider } from '../context/AppState'
+
+// Mock wallet as connected for DepositCard tests
+mock.module('@solana/wallet-adapter-react', () => ({
+  useWallet: () => ({
+    connected: true,
+    publicKey: { toBase58: () => 'MockPublicKey123' },
+  }),
+}))
+
+mock.module('../hooks/useWalletBalance', () => ({
+  useWalletBalance: () => ({
+    publicUsdc: 10.5,
+    shieldedUsdc: 0,
+    isLoading: false,
+    error: null,
+    refresh: () => Promise.resolve(),
+  }),
+}))
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <AppStateProvider>{children}</AppStateProvider>
@@ -28,19 +46,19 @@ describe('UploadCSV', () => {
 
 describe('DepositCard', () => {
   it('renders with correct test id and placeholder text', () => {
-    const { getByTestId, getByText } = render(<DepositCard />)
+    const { getByTestId, getByText } = render(<DepositCard />, { wrapper })
     expect(getByTestId('deposit-card')).toBeTruthy()
-    expect(getByText('Enter amount to deposit')).toBeTruthy()
+    expect(getByText(/Balance:/)).toBeTruthy()
     expect(getByText('2')).toBeTruthy()
   })
 
-  it('has disabled deposit button', () => {
-    const { getByRole } = render(<DepositCard />)
-    expect(getByRole('button', { name: 'Deposit' }).hasAttribute('disabled')).toBe(true)
+  it('has deposit button', () => {
+    const { getByRole } = render(<DepositCard />, { wrapper })
+    expect(getByRole('button', { name: 'Deposit' })).toBeTruthy()
   })
 
   it('applies className prop', () => {
-    const { getByTestId } = render(<DepositCard className="custom-class" />)
+    const { getByTestId } = render(<DepositCard className="custom-class" />, { wrapper })
     expect(getByTestId('deposit-card').classList.contains('custom-class')).toBe(true)
   })
 })
