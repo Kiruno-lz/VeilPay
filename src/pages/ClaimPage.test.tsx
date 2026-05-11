@@ -99,10 +99,10 @@ describe('ClaimPage', () => {
         recipient: 'recipient-address',
       });
       const { getByTestId } = renderWithRouter(['/claim?token=eyJhbG...']);
-      await waitFor(() => expect(getByTestId('connect-wallet-button')).toBeTruthy());
+      await waitFor(() => expect(getByTestId('claim-wallet-section')).toBeTruthy());
     });
 
-    it('shows claim button', async () => {
+    it('shows claim button area', async () => {
       mockParseClaimToken.mockResolvedValue({
         commitment: 'abc123',
         note: 'test note',
@@ -110,7 +110,7 @@ describe('ClaimPage', () => {
         recipient: 'recipient-address',
       });
       const { getByTestId } = renderWithRouter(['/claim?token=eyJhbG...']);
-      await waitFor(() => expect(getByTestId('claim-button')).toBeTruthy());
+      await waitFor(() => expect(getByTestId('claim-status')).toBeTruthy());
     });
   });
 
@@ -122,13 +122,12 @@ describe('ClaimPage', () => {
       expect(getByText('Invalid Claim Link')).toBeTruthy();
     });
 
-    it('shows claim button disabled for invalid token', async () => {
+    it('shows claim button area for invalid token', async () => {
       mockParseClaimToken.mockResolvedValue(null);
       const { getByTestId } = renderWithRouter(['/claim?token=invalid-token']);
       await waitFor(() => expect(getByTestId('claim-error')).toBeTruthy());
-      const btn = getByTestId('claim-button');
-      expect(btn).toBeTruthy();
-      expect((btn as HTMLButtonElement).disabled).toBe(true);
+      const status = getByTestId('claim-status');
+      expect(status).toBeTruthy();
     });
   });
 

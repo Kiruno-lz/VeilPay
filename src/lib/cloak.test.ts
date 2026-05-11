@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'bun:test';
-import { CloakSDK } from './cloak';
+
+// Use dynamic import with cache busting to bypass any module mocks from other test files
+const { CloakSDK } = await import('./cloak?bust=' + Date.now());
 
 const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+$/;
 

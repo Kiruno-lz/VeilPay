@@ -8,7 +8,7 @@ interface AuditDashboardProps {
 
 // Mock viewing key generator that doesn't depend on @cloak.dev/sdk
 // This avoids browser-side errors from Node-only dependencies like blake-hash
-async function mockGenerateViewingKey(scope: string, expiry: number): Promise<string> {
+async function mockGenerateViewingKey(scope: string, _expiry: number): Promise<string> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300 + Math.floor(Math.random() * 500)))
   const timestamp = Date.now()

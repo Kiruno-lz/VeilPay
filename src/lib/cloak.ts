@@ -23,6 +23,7 @@ import {
 // dynamically importing with a cache-busting query string we bypass the mock
 // and guarantee that CloakSDK always uses the authentic Solana Connection
 // regardless of test mocking order.
+// @ts-expect-error - Dynamic import with cache busting for test isolation
 const { Connection: SolanaConnection } = await import('@solana/web3.js?bust=cloak');
 import type { Keypair } from '@solana/web3.js';
 import type {
