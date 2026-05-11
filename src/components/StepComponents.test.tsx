@@ -65,19 +65,19 @@ describe('DepositCard', () => {
 
 describe('DisburseForm', () => {
   it('renders with correct test id and placeholder text', () => {
-    const { getByTestId, getByText } = render(<DisburseForm />)
+    const { getByTestId, getByText } = render(<DisburseForm />, { wrapper })
     expect(getByTestId('disburse-form')).toBeTruthy()
-    expect(getByText('No recipients yet')).toBeTruthy()
+    expect(getByText('No recipients yet. Upload a CSV first.')).toBeTruthy()
     expect(getByText('3')).toBeTruthy()
   })
 
   it('has disabled disburse button', () => {
-    const { getByRole } = render(<DisburseForm />)
+    const { getByRole } = render(<DisburseForm />, { wrapper })
     expect(getByRole('button', { name: 'Disburse' }).hasAttribute('disabled')).toBe(true)
   })
 
   it('applies className prop', () => {
-    const { getByTestId } = render(<DisburseForm className="custom-class" />)
+    const { getByTestId } = render(<DisburseForm className="custom-class" />, { wrapper })
     expect(getByTestId('disburse-form').classList.contains('custom-class')).toBe(true)
   })
 })

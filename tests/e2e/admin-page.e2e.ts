@@ -34,7 +34,7 @@ test.describe('Admin page skeleton visual check', () => {
     // Title
     await expect(page.locator('text=VeilPay Admin')).toBeVisible();
     // Connect Wallet button
-    await expect(page.locator('text=Connect Wallet')).toBeVisible();
+    await expect(page.locator('[data-testid="connect-button"]')).toBeVisible();
     // Step numbers 1-4 (rendered as plain numbers in circles)
     await expect(page.locator('text=1').first()).toBeVisible();
     await expect(page.locator('text=2').first()).toBeVisible();
@@ -66,7 +66,7 @@ test.describe('Admin page skeleton visual check', () => {
 
     // Check key elements still visible
     await expect(page.locator('text=VeilPay Admin')).toBeVisible();
-    await expect(page.locator('text=Connect Wallet')).toBeVisible();
+    await expect(page.locator('[data-testid="connect-button"]')).toBeVisible();
     await expect(page.locator('text=1').first()).toBeVisible();
     await expect(page.locator('text=2').first()).toBeVisible();
     await expect(page.locator('text=3').first()).toBeVisible();
