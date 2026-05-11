@@ -14,6 +14,9 @@ const initialState: AppState = {
   },
   audit: {
     viewingKeys: [],
+    transactions: [],
+    decryptStatus: 'idle',
+    decryptError: null,
   },
   ui: {
     currentStep: 1,
@@ -70,6 +73,21 @@ function appReducer(state: AppState, action: AppAction): AppState {
             key.id === action.payload ? { ...key, status: 'revoked' as const } : key
           ),
         },
+      };
+    case 'SET_AUDIT_TRANSACTIONS':
+      return {
+        ...state,
+        audit: { ...state.audit, transactions: action.payload },
+      };
+    case 'SET_DECRYPT_STATUS':
+      return {
+        ...state,
+        audit: { ...state.audit, decryptStatus: action.payload },
+      };
+    case 'SET_DECRYPT_ERROR':
+      return {
+        ...state,
+        audit: { ...state.audit, decryptError: action.payload },
       };
     case 'SET_UI_STEP':
       return { ...state, ui: { ...state.ui, currentStep: action.payload } };

@@ -34,29 +34,67 @@ test.describe('Audit Page', () => {
     await expect(decryptButton).toBeVisible();
     await expect(decryptButton).toBeDisabled();
 
-    // Verify transaction-table-placeholder shows the expected text
-    const tablePlaceholder = page.getByTestId('transaction-table-placeholder');
-    await expect(tablePlaceholder).toBeVisible();
-    await expect(tablePlaceholder).toContainText('Enter viewing key to see history');
-
-    // Verify export-button is visible and initially disabled
-    const exportButton = page.getByTestId('export-button');
-    await expect(exportButton).toBeVisible();
+    // Verify export-button wrapper is visible; the actual button is inside AuditExporter
+    const exportButtonWrapper = page.getByTestId('export-button');
+    await expect(exportButtonWrapper).toBeVisible();
+    const exportButton = exportButtonWrapper.locator('button');
     await expect(exportButton).toBeDisabled();
+
+    // Take screenshot of empty state
+    await page.screenshot({ path: 'tests/e2e/screenshots/audit-page/01-empty-state.png', fullPage: true });
 
     // Type a test key in the textarea
     await keyInput.fill('test-viewing-key-12345');
 
+    // Take screenshot with key entered
+    await page.screenshot({ path: 'tests/e2e/screenshots/audit-page/02-with-key.png', fullPage: true });
+
     // Verify decrypt-button becomes enabled
     await expect(decryptButton).toBeEnabled();
 
-    // Verify export-button also becomes enabled
-    await expect(exportButton).toBeEnabled();
+    // Click decrypt button
+    await decryptButton.click();
 
-    // Verify placeholder text updates after input
-    await expect(tablePlaceholder).toContainText('Press "Decrypt History" to load transactions');
+    // Wait for loading state
+    await page.waitForSelector('[data-testid="decrypt-loading"]', { state: 'visible', timeout: 5000 });
 
-    // Take a screenshot of the page
-    await page.screenshot({ path: 'tests/e2e/screenshots/audit-page.png', fullPage: true });
+    // Take screenshot of loading state
+    await page.screenshot({ path: 'tests/e2e/screenshots/audit-page/03-decrypt-loading.png', fullPage: true });
+
+    // Wait for success state (either transaction table or empty state)
+    await Promise.race([
+      page.waitForSelector('[data-testid="transaction-table"]', { state: 'visible', timeout: 10000 }),
+      page.waitForSelector('[data-testid="transaction-empty-state"]', { state: 'visible', timeout: 10000 }),
+    ]);
+
+    // Take screenshot of success state
+    await page.screenshot({ path: 'tests/e2e/screenshots/audit-page/04-decrypt-success.png', fullPage: true });
+
+    // Check if transactions exist
+    const transactionTable = page.locator('[data-testid="transaction-table"]');
+    const transactionCount = page.getByTestId('transaction-count');
+    const isTableVisible = await transactionTable.isVisible().catch(() => false);
+
+    if (isTableVisible) {
+      // Verify transaction count is displayed
+      await expect(transactionCount).toBeVisible();
+      const countText = await transactionCount.textContent();
+      expect(countText).toMatch(/\d+ transaction(s)? found/);
+
+      // Verify at least one transaction row exists
+      const firstRow = page.getByTestId('transaction-row-0');
+      await expect(firstRow).toBeVisible();
+
+      // Verify export button is enabled when transactions exist
+      await expect(exportButton).toBeEnabled();
+    } else {
+      // If no transactions, verify empty state
+      const emptyState = page.getByTestId('transaction-empty-state');
+      await expect(emptyState).toBeVisible();
+      await expect(emptyState).toContainText('No transactions found for this key');
+
+      // Verify export button remains disabled when no transactions
+      await expect(exportButton).toBeDisabled();
+    }
   });
 });

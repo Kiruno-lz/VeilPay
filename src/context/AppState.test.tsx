@@ -17,6 +17,9 @@ function TestComponent() {
       <div data-testid="disbursementProgress">{state.disbursement.progress}</div>
       <div data-testid="claimLinks">{state.disbursement.claimLinks.length}</div>
       <div data-testid="viewingKeys">{state.audit.viewingKeys.length}</div>
+      <div data-testid="auditTransactions">{state.audit.transactions.length}</div>
+      <div data-testid="decryptStatus">{state.audit.decryptStatus}</div>
+      <div data-testid="decryptError">{state.audit.decryptError ?? 'null'}</div>
       <div data-testid="currentStep">{state.ui.currentStep}</div>
       <div data-testid="isLoading">{state.ui.isLoading ? 'true' : 'false'}</div>
       <div data-testid="error">{state.ui.error === null ? 'null' : state.ui.error}</div>
@@ -54,6 +57,9 @@ describe('AppStateProvider', () => {
     expect(getByTestId('recipients').textContent).toBe('0');
     expect(getByTestId('disbursementStatus').textContent).toBe('idle');
     expect(getByTestId('currentStep').textContent).toBe('1');
+    expect(getByTestId('auditTransactions').textContent).toBe('0');
+    expect(getByTestId('decryptStatus').textContent).toBe('idle');
+    expect(getByTestId('decryptError').textContent).toBe('null');
   });
 
   it('should handle SET_WALLET action', () => {
@@ -319,6 +325,103 @@ describe('AppStateProvider', () => {
       getByTestId('revokeBtn').click();
     });
     expect(getByTestId('status').textContent).toBe('revoked');
+  });
+
+  it('should handle SET_AUDIT_TRANSACTIONS action', () => {
+    function AuditTxTest() {
+      const { state, dispatch } = useAppState();
+      return (
+        <div>
+          <div data-testid="count">{state.audit.transactions.length}</div>
+          <button
+            data-testid="btn"
+            onClick={() =>
+              dispatch({
+                type: 'SET_AUDIT_TRANSACTIONS',
+                payload: [
+                  {
+                    date: new Date('2024-01-01'),
+                    amount: 100,
+                    recipient: 'addr1',
+                    type: 'deposit',
+                    txHash: 'tx1',
+                  },
+                ],
+              })
+            }
+          >
+            Set
+          </button>
+        </div>
+      );
+    }
+
+    const { getByTestId } = render(
+      <AppStateProvider>
+        <AuditTxTest />
+      </AppStateProvider>
+    );
+
+    act(() => {
+      getByTestId('btn').click();
+    });
+    expect(getByTestId('count').textContent).toBe('1');
+  });
+
+  it('should handle SET_DECRYPT_STATUS action', () => {
+    function DecryptStatusTest() {
+      const { state, dispatch } = useAppState();
+      return (
+        <div>
+          <div data-testid="status">{state.audit.decryptStatus}</div>
+          <button
+            data-testid="btn"
+            onClick={() => dispatch({ type: 'SET_DECRYPT_STATUS', payload: 'loading' })}
+          >
+            Set
+          </button>
+        </div>
+      );
+    }
+
+    const { getByTestId } = render(
+      <AppStateProvider>
+        <DecryptStatusTest />
+      </AppStateProvider>
+    );
+
+    act(() => {
+      getByTestId('btn').click();
+    });
+    expect(getByTestId('status').textContent).toBe('loading');
+  });
+
+  it('should handle SET_DECRYPT_ERROR action', () => {
+    function DecryptErrorTest() {
+      const { state, dispatch } = useAppState();
+      return (
+        <div>
+          <div data-testid="error">{state.audit.decryptError ?? 'null'}</div>
+          <button
+            data-testid="btn"
+            onClick={() => dispatch({ type: 'SET_DECRYPT_ERROR', payload: 'Invalid key' })}
+          >
+            Set
+          </button>
+        </div>
+      );
+    }
+
+    const { getByTestId } = render(
+      <AppStateProvider>
+        <DecryptErrorTest />
+      </AppStateProvider>
+    );
+
+    act(() => {
+      getByTestId('btn').click();
+    });
+    expect(getByTestId('error').textContent).toBe('Invalid key');
   });
 
   it('should handle SET_UI_STEP action', () => {
