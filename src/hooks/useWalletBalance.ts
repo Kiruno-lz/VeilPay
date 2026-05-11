@@ -5,7 +5,7 @@ import { getAssociatedTokenAddress, getAccount } from '@solana/spl-token';
 import { useAppState } from '../context/useAppState';
 
 // USDC mint on Solana devnet
-const DEFAULT_USDC_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+const DEFAULT_USDC_MINT = '61ro7AExqfk4dZYoCyRzTahahCC2TdUUZ4M5epMPunJf';
 
 // Default refresh interval: 5 seconds
 const DEFAULT_REFRESH_INTERVAL_MS = 5000;

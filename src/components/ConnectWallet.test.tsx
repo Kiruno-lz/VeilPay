@@ -4,22 +4,21 @@ import { render, fireEvent } from '@testing-library/react';
 import { ConnectWallet } from './ConnectWallet';
 import { AppStateProvider } from '../context/AppState';
 
-// Mock @solana/wallet-adapter-react (used by useWallet hook)
+// ── Mock the custom useWallet hook directly ───────────────────────────────
 const mockConnect = mock(() => Promise.resolve());
 const mockDisconnect = mock(() => Promise.resolve());
-const mockSelect = mock(() => {});
+const mockSelectWallet = mock(() => {});
 
 let mockWalletState = {
   connected: false,
-  publicKey: null as { toBase58: () => string } | null,
-  wallet: null as { adapter: { name: string } } | null,
-  wallets: [],
+  publicKey: null as string | null,
+  walletName: null as string | null,
   connect: mockConnect,
   disconnect: mockDisconnect,
-  select: mockSelect,
+  selectWallet: mockSelectWallet,
 };
 
-mock.module('@solana/wallet-adapter-react', () => ({
+mock.module('../hooks/useWallet', () => ({
   useWallet: () => mockWalletState,
 }));
 
@@ -32,15 +31,14 @@ describe('ConnectWallet', () => {
     mockWalletState = {
       connected: false,
       publicKey: null,
-      wallet: null,
-      wallets: [],
+      walletName: null,
       connect: mockConnect,
       disconnect: mockDisconnect,
-      select: mockSelect,
+      selectWallet: mockSelectWallet,
     };
     mockConnect.mockClear();
     mockDisconnect.mockClear();
-    mockSelect.mockClear();
+    mockSelectWallet.mockClear();
   });
 
   it('renders connect button when disconnected', () => {
@@ -59,18 +57,12 @@ describe('ConnectWallet', () => {
   });
 
   it('calls selectWallet and connect when a wallet is selected', async () => {
-    // Set wallet so connect() doesn't throw "No wallet selected"
-    mockWalletState = {
-      ...mockWalletState,
-      wallet: { adapter: { name: 'Phantom' } },
-    };
-
     const { getByTestId } = render(<ConnectWallet />, { wrapper });
     fireEvent.click(getByTestId('connect-button'));
     fireEvent.click(getByTestId('wallet-option-phantom'));
 
-    // Note: The hook calls select() on the solana adapter, then connect()
-    // We verify the connect was called (select is called internally by the hook)
+    // The hook calls selectWallet() then connect()
+    expect(mockSelectWallet).toHaveBeenCalled();
     expect(mockConnect).toHaveBeenCalled();
   });
 
@@ -78,8 +70,8 @@ describe('ConnectWallet', () => {
     mockWalletState = {
       ...mockWalletState,
       connected: true,
-      publicKey: { toBase58: () => '7x9k2LmNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYz' },
-      wallet: { adapter: { name: 'Phantom' } },
+      publicKey: '7x9k2LmNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYz',
+      walletName: 'Phantom',
     };
 
     const { getByText, getByTestId } = render(<ConnectWallet />, { wrapper });
@@ -93,8 +85,8 @@ describe('ConnectWallet', () => {
     mockWalletState = {
       ...mockWalletState,
       connected: true,
-      publicKey: { toBase58: () => '7x9k2LmNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYz' },
-      wallet: { adapter: { name: 'Phantom' } },
+      publicKey: '7x9k2LmNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYz',
+      walletName: 'Phantom',
     };
 
     const { getByTestId } = render(<ConnectWallet />, { wrapper });

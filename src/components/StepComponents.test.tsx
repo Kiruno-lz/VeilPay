@@ -7,11 +7,32 @@ import DepositCard from './DepositCard'
 import DisburseForm from './DisburseForm'
 import AuditDashboard from './AuditDashboard'
 
-// Mock wallet as connected for DepositCard tests
+// Mock @solana/wallet-adapter-react for DepositCard (imports directly)
 mock.module('@solana/wallet-adapter-react', () => ({
   useWallet: () => ({
     connected: true,
     publicKey: { toBase58: () => 'MockPublicKey123' },
+    wallet: { adapter: { name: 'Phantom' } },
+    wallets: [],
+    connect: () => Promise.resolve(),
+    disconnect: () => Promise.resolve(),
+    select: () => {},
+    signTransaction: () => Promise.resolve(),
+    signAllTransactions: () => Promise.resolve(),
+    signMessage: () => Promise.resolve(),
+  }),
+  useConnection: () => ({ connection: null }),
+}))
+
+// Mock the custom useWallet hook for other components
+mock.module('../hooks/useWallet', () => ({
+  useWallet: () => ({
+    connected: true,
+    publicKey: 'MockPublicKey123',
+    walletName: 'Phantom',
+    connect: () => Promise.resolve(),
+    disconnect: () => Promise.resolve(),
+    selectWallet: () => {},
   }),
 }))
 
@@ -65,19 +86,19 @@ describe('DepositCard', () => {
 
 describe('DisburseForm', () => {
   it('renders with correct test id and placeholder text', () => {
-    const { getByTestId, getByText } = render(<DisburseForm />)
+    const { getByTestId, getByText } = render(<DisburseForm />, { wrapper })
     expect(getByTestId('disburse-form')).toBeTruthy()
     expect(getByText('No recipients yet')).toBeTruthy()
     expect(getByText('3')).toBeTruthy()
   })
 
   it('has disabled disburse button', () => {
-    const { getByRole } = render(<DisburseForm />)
+    const { getByRole } = render(<DisburseForm />, { wrapper })
     expect(getByRole('button', { name: 'Disburse' }).hasAttribute('disabled')).toBe(true)
   })
 
   it('applies className prop', () => {
-    const { getByTestId } = render(<DisburseForm className="custom-class" />)
+    const { getByTestId } = render(<DisburseForm className="custom-class" />, { wrapper })
     expect(getByTestId('disburse-form').classList.contains('custom-class')).toBe(true)
   })
 })

@@ -1,7 +1,39 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { Keypair } from '@solana/web3.js';
 import { useWalletBalance } from '../hooks/useWalletBalance';
 import { CloakSDK } from '../lib/cloak';
+
+/**
+ * Load a test wallet Keypair for devnet testing.
+ * In dev mode (VITE_USE_TEST_WALLET=true), reads the secret key from
+ * localStorage or env and creates a Keypair for real devnet interactions.
+ * Returns null in production or if no test wallet is configured.
+ */
+function loadTestWallet(): Keypair | null {
+  if (import.meta.env.VITE_USE_TEST_WALLET !== 'true') {
+    return null;
+  }
+
+  try {
+    const secretKeyJson = localStorage.getItem('veilpay_test_wallet');
+    if (secretKeyJson) {
+      const secretKey = new Uint8Array(JSON.parse(secretKeyJson));
+      return Keypair.fromSecretKey(secretKey);
+    }
+
+    // Fallback: check env var (base58 encoded)
+    const envKey = import.meta.env.VITE_TEST_WALLET_SECRET_KEY;
+    if (envKey) {
+      // Simple base58 decode would go here; for now, expect array format
+      console.warn('[DepositCard] VITE_TEST_WALLET_SECRET_KEY should be a JSON array in localStorage');
+    }
+  } catch (err) {
+    console.error('[DepositCard] Failed to load test wallet:', err);
+  }
+
+  return null;
+}
 
 type DepositState = 'idle' | 'proving' | 'confirmed' | 'error';
 
@@ -10,12 +42,14 @@ interface DepositCardProps {
 }
 
 function DepositCard({ className }: DepositCardProps) {
-  const { connected } = useWallet();
+  const { connected, signTransaction, publicKey } = useWallet();
   const { publicUsdc, refresh } = useWalletBalance();
   const [amount, setAmount] = useState('');
   const [depositState, setDepositState] = useState<DepositState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+
+  const testWallet = useMemo(() => loadTestWallet(), []);
 
   const validate = useCallback(
     (value: string): string | null => {
@@ -46,7 +80,14 @@ function DepositCard({ className }: DepositCardProps) {
     setDepositState('proving');
 
     try {
-      const sdk = new CloakSDK({ network: 'devnet' });
+      // Use test wallet for real devnet interactions, or wallet adapter for mock
+      let signer = testWallet;
+      if (!signer && publicKey && signTransaction) {
+        // Browser wallet: pass adapter signer (will fall back to mock with warning)
+        signer = { publicKey, signTransaction } as any;
+      }
+
+      const sdk = new CloakSDK({ network: 'devnet', signer: signer || undefined });
       const result = await sdk.deposit({
         amount: parseFloat(amount),
         token: 'USDC',
@@ -59,7 +100,7 @@ function DepositCard({ className }: DepositCardProps) {
       setErrorMessage(message);
       setDepositState('error');
     }
-  }, [amount, validate, refresh]);
+  }, [amount, validate, refresh, testWallet, publicKey, signTransaction]);
 
   const handleRetry = useCallback(() => {
     setDepositState('idle');

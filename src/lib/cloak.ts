@@ -23,9 +23,11 @@ import {
 // dynamically importing with a cache-busting query string we bypass the mock
 // and guarantee that CloakSDK always uses the authentic Solana Connection
 // regardless of test mocking order.
-import type { Keypair } from '@solana/web3.js';
+import type { Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import type {
   CloakSDKConfig,
+  CloakSigner,
+  WalletAdapterSigner,
   DepositParams,
   TransferParams,
   ReceiveParams,
@@ -65,12 +67,12 @@ function uint8ArrayToHex(arr: Uint8Array): string {
 export class CloakSDK {
   private config: CloakSDKConfig;
   private connection: any;
-  private signer: Keypair | null = null;
+  private signer: CloakSigner | null = null;
   private programId = CLOAK_PROGRAM_ID;
   private cachedKeys: ReturnType<typeof generateCloakKeys> | null = null;
   private static readonly DEFAULT_TIMEOUT_MS = 30000;
 
-  constructor(config: CloakSDKConfig & { signer?: Keypair }) {
+  constructor(config: CloakSDKConfig & { signer?: CloakSigner }) {
     this.config = config;
     this.signer = config.signer ?? null;
     this.connection = this._createConnectionSync(config.network);
@@ -85,6 +87,28 @@ export class CloakSDK {
   /** Whether the SDK is backed by a real signer (live mode) or mock (fallback mode). */
   get isLive(): boolean {
     return this.signer !== null;
+  }
+
+  /** Check if the signer is a Keypair (has secretKey property). */
+  private _isKeypair(signer: CloakSigner): signer is Keypair {
+    return 'secretKey' in signer;
+  }
+
+  /** Check if the signer is a wallet adapter (has signTransaction method). */
+  private _isWalletAdapter(signer: CloakSigner): signer is WalletAdapterSigner {
+    return 'signTransaction' in signer && typeof signer.signTransaction === 'function';
+  }
+
+  /** Get the public key from the signer regardless of type. */
+  private _getSignerPublicKey(): PublicKey | null {
+    if (!this.signer) return null;
+    if (this._isKeypair(this.signer)) {
+      return this.signer.publicKey;
+    }
+    if (this._isWalletAdapter(this.signer)) {
+      return this.signer.publicKey;
+    }
+    return null;
   }
 
   /** Get the current network endpoint URL. */
@@ -149,6 +173,25 @@ export class CloakSDK {
   /** Deposit tokens into the Cloak shield pool. */
   async deposit(params: DepositParams): Promise<{ txHash: string }> {
     if (!this.signer) {
+      console.warn(
+        '[CloakSDK] deposit: No signer available. ' +
+          'For devnet testing, set VITE_USE_TEST_WALLET=true and provide a test wallet. ' +
+          'Falling back to mock mode.'
+      );
+      return this._mockDeposit(params);
+    }
+
+    // Wallet adapter can't provide a Keypair (no private key access).
+    // For browser wallets, we fall back to mock with a clear message.
+    // TODO: Implement manual transaction building + wallet adapter signing
+    // when @cloak.dev/sdk supports adapter-style signers.
+    if (this._isWalletAdapter(this.signer)) {
+      console.warn(
+        '[CloakSDK] deposit: Wallet adapter signer detected. ' +
+          'Browser wallets cannot provide a Keypair for @cloak.dev/sdk transact(). ' +
+          'Use a test wallet (VITE_USE_TEST_WALLET=true) for real devnet interactions. ' +
+          'Falling back to mock mode.'
+      );
       return this._mockDeposit(params);
     }
 
@@ -161,18 +204,20 @@ export class CloakSDK {
     const amountLamports = BigInt(Math.floor(params.amount * 1e9));
     const outputUtxo = await this._createUtxo(amountLamports);
 
+    const signerPublicKey = this._getSignerPublicKey();
+
     const result = await this._withTimeout(
       transact(
         {
           inputUtxos: [zeroUtxo],
           outputUtxos: [outputUtxo],
           externalAmount: amountLamports,
-          depositor: this.signer.publicKey,
+          depositor: signerPublicKey!,
         },
         {
           connection: this.connection,
           programId: this.programId,
-          depositorKeypair: this.signer,
+          depositorKeypair: this.signer as Keypair,
           relayUrl: this.config.relayerEndpoint,
           onProgress: (status) => console.log(`[CloakSDK] deposit: ${status}`),
         }
@@ -186,6 +231,23 @@ export class CloakSDK {
   /** Transfer shielded tokens to a recipient (shield-to-shield). */
   async transfer(params: TransferParams): Promise<{ txHash: string }> {
     if (!this.signer) {
+      console.warn(
+        '[CloakSDK] transfer: No signer available. ' +
+          'For devnet testing, set VITE_USE_TEST_WALLET=true and provide a test wallet. ' +
+          'Falling back to mock mode.'
+      );
+      return this._mockTransfer(params);
+    }
+
+    // Wallet adapter can't provide a Keypair (no private key access).
+    // For browser wallets, we fall back to mock with a clear message.
+    if (this._isWalletAdapter(this.signer)) {
+      console.warn(
+        '[CloakSDK] transfer: Wallet adapter signer detected. ' +
+          'Browser wallets cannot provide a Keypair for @cloak.dev/sdk transact(). ' +
+          'Use a test wallet (VITE_USE_TEST_WALLET=true) for real devnet interactions. ' +
+          'Falling back to mock mode.'
+      );
       return this._mockTransfer(params);
     }
 
@@ -201,6 +263,23 @@ export class CloakSDK {
   /** Receive / claim a transfer by withdrawing to an external address. */
   async receive(params: ReceiveParams): Promise<{ txHash: string }> {
     if (!this.signer) {
+      console.warn(
+        '[CloakSDK] receive: No signer available. ' +
+          'For devnet testing, set VITE_USE_TEST_WALLET=true and provide a test wallet. ' +
+          'Falling back to mock mode.'
+      );
+      return this._mockReceive(params);
+    }
+
+    // Wallet adapter can't provide a Keypair (no private key access).
+    // For browser wallets, we fall back to mock with a clear message.
+    if (this._isWalletAdapter(this.signer)) {
+      console.warn(
+        '[CloakSDK] receive: Wallet adapter signer detected. ' +
+          'Browser wallets cannot provide a Keypair for @cloak.dev/sdk transact(). ' +
+          'Use a test wallet (VITE_USE_TEST_WALLET=true) for real devnet interactions. ' +
+          'Falling back to mock mode.'
+      );
       return this._mockReceive(params);
     }
 
@@ -216,6 +295,11 @@ export class CloakSDK {
   /** Generate a viewing key for scoped decryption. */
   async generateViewingKey(params: ViewingKeyParams): Promise<string> {
     if (!this.signer) {
+      console.warn(
+        '[CloakSDK] generateViewingKey: No signer available. ' +
+          'For devnet testing, set VITE_USE_TEST_WALLET=true and provide a test wallet. ' +
+          'Falling back to mock mode.'
+      );
       return this._mockGenerateViewingKey(params);
     }
 
@@ -247,18 +331,25 @@ export class CloakSDK {
   /** Decrypt transaction history using a viewing key. */
   async decryptHistory(viewingKey: string): Promise<TransactionRecord[]> {
     if (!this.signer) {
+      console.warn(
+        '[CloakSDK] decryptHistory: No signer available. ' +
+          'For devnet testing, set VITE_USE_TEST_WALLET=true and provide a test wallet. ' +
+          'Falling back to mock mode.'
+      );
       return this._mockDecryptHistory(viewingKey);
     }
 
     const keys = this._ensureKeys();
     const nk = getNkFromUtxoPrivateKey(BigInt('0x' + keys.spend.sk_spend_hex));
 
+    const signerPublicKey = this._getSignerPublicKey();
+
     const scan = await this._withTimeout(
       scanTransactions({
         connection: this.connection,
         programId: this.programId,
         viewingKeyNk: nk,
-        walletPublicKey: this.signer.publicKey.toBase58(),
+        walletPublicKey: signerPublicKey!.toBase58(),
       }),
       'decryptHistory'
     );

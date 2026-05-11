@@ -1,42 +1,25 @@
 import '../happy-dom-setup';
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { renderHook, act } from '@testing-library/react';
-import { useWallet } from './useWallet';
 import { AppStateProvider } from '../context/AppState';
 
-// Mock @solana/wallet-adapter-react
+// ── Mock @solana/wallet-adapter-react ────────────────────────────────────
 const mockConnect = mock(() => Promise.resolve());
-const mockDisconnect = mock(() => {
-  mockWalletStateRef.current.connected = false;
-  mockWalletStateRef.current.publicKey = null;
-  mockWalletStateRef.current.wallet = null;
-  return Promise.resolve();
-});
+const mockDisconnect = mock(() => Promise.resolve());
 const mockSelect = mock(() => {});
 
-// Use a ref object so the mock module always sees the current state
-const mockWalletStateRef = {
-  current: {
-    connected: false,
-    publicKey: null,
-    wallet: null,
-    wallets: [],
-    connect: mockConnect,
-    disconnect: mockDisconnect,
-    select: mockSelect,
-  },
+let mockWalletState = {
+  connected: false,
+  publicKey: null as { toBase58: () => string } | null,
+  wallet: null as { adapter: { name: string } } | null,
+  wallets: [],
+  connect: mockConnect,
+  disconnect: mockDisconnect,
+  select: mockSelect,
 };
 
 mock.module('@solana/wallet-adapter-react', () => ({
-  useWallet: () => ({
-    get connected() { return mockWalletStateRef.current.connected; },
-    get publicKey() { return mockWalletStateRef.current.publicKey; },
-    get wallet() { return mockWalletStateRef.current.wallet; },
-    get wallets() { return mockWalletStateRef.current.wallets; },
-    connect: mockConnect,
-    disconnect: mockDisconnect,
-    select: mockSelect,
-  }),
+  useWallet: () => mockWalletState,
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -45,7 +28,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('useWallet', () => {
   beforeEach(() => {
-    mockWalletStateRef.current = {
+    mockWalletState = {
       connected: false,
       publicKey: null,
       wallet: null,
@@ -59,7 +42,8 @@ describe('useWallet', () => {
     mockSelect.mockClear();
   });
 
-  it('returns disconnected state initially', () => {
+  it('returns disconnected state initially', async () => {
+    const { useWallet } = await import('./useWallet?bust=' + Date.now());
     const { result } = renderHook(() => useWallet(), { wrapper });
 
     expect(result.current.connected).toBe(false);
@@ -67,7 +51,8 @@ describe('useWallet', () => {
     expect(result.current.walletName).toBeNull();
   });
 
-  it('shows correct wallet name after selection', () => {
+  it('shows correct wallet name after selection', async () => {
+    const { useWallet } = await import('./useWallet?bust=' + Date.now());
     const { result } = renderHook(() => useWallet(), { wrapper });
 
     act(() => {
@@ -79,13 +64,14 @@ describe('useWallet', () => {
   });
 
   it('updates connected state and publicKey on connect', async () => {
-    mockWalletStateRef.current = {
-      ...mockWalletStateRef.current,
+    mockWalletState = {
+      ...mockWalletState,
       connected: true,
       publicKey: { toBase58: () => 'ABC123xyz789' },
       wallet: { adapter: { name: 'Phantom' } },
     };
 
+    const { useWallet } = await import('./useWallet?bust=' + Date.now());
     const { result, rerender } = renderHook(() => useWallet(), { wrapper });
 
     // Trigger connect
@@ -101,13 +87,14 @@ describe('useWallet', () => {
   });
 
   it('resets state to null on disconnect', async () => {
-    mockWalletStateRef.current = {
-      ...mockWalletStateRef.current,
+    mockWalletState = {
+      ...mockWalletState,
       connected: true,
       publicKey: { toBase58: () => 'ABC123xyz789' },
       wallet: { adapter: { name: 'Phantom' } },
     };
 
+    const { useWallet } = await import('./useWallet?bust=' + Date.now());
     const { result, rerender } = renderHook(() => useWallet(), { wrapper });
 
     await act(async () => {
@@ -115,9 +102,12 @@ describe('useWallet', () => {
     });
 
     // Simulate the wallet adapter state update after disconnect
-    mockWalletStateRef.current.connected = false;
-    mockWalletStateRef.current.publicKey = null;
-    mockWalletStateRef.current.wallet = null;
+    mockWalletState = {
+      ...mockWalletState,
+      connected: false,
+      publicKey: null,
+      wallet: null,
+    };
     rerender();
 
     expect(result.current.connected).toBe(false);
@@ -125,13 +115,14 @@ describe('useWallet', () => {
   });
 
   it('dispatches SET_WALLET on connect', async () => {
-    mockWalletStateRef.current = {
-      ...mockWalletStateRef.current,
+    mockWalletState = {
+      ...mockWalletState,
       connected: true,
       publicKey: { toBase58: () => 'ABC123xyz789' },
       wallet: { adapter: { name: 'Phantom' } },
     };
 
+    const { useWallet } = await import('./useWallet?bust=' + Date.now());
     const { result, rerender } = renderHook(() => useWallet(), { wrapper });
 
     await act(async () => {
@@ -147,13 +138,14 @@ describe('useWallet', () => {
   });
 
   it('dispatches SET_WALLET null on disconnect', async () => {
-    mockWalletStateRef.current = {
-      ...mockWalletStateRef.current,
+    mockWalletState = {
+      ...mockWalletState,
       connected: true,
       publicKey: { toBase58: () => 'ABC123xyz789' },
       wallet: { adapter: { name: 'Phantom' } },
     };
 
+    const { useWallet } = await import('./useWallet?bust=' + Date.now());
     const { result, rerender } = renderHook(() => useWallet(), { wrapper });
 
     await act(async () => {
@@ -161,9 +153,12 @@ describe('useWallet', () => {
     });
 
     // Simulate the wallet adapter state update after disconnect
-    mockWalletStateRef.current.connected = false;
-    mockWalletStateRef.current.publicKey = null;
-    mockWalletStateRef.current.wallet = null;
+    mockWalletState = {
+      ...mockWalletState,
+      connected: false,
+      publicKey: null,
+      wallet: null,
+    };
     rerender();
 
     expect(result.current.connected).toBe(false);

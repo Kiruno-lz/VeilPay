@@ -2,6 +2,19 @@
 //
 // Bridges the planned VeilPay API with real @cloak.dev/sdk types.
 
+import type { PublicKey, Transaction } from '@solana/web3.js';
+
+// ── Signer Types ─────────────────────────────────────────────────────────
+
+/** Wallet adapter-style signer (browser wallets like Phantom, Solflare) */
+export interface WalletAdapterSigner {
+  publicKey: PublicKey;
+  signTransaction: (tx: Transaction) => Promise<Transaction>;
+}
+
+/** Union type for all supported signer types */
+export type CloakSigner = import('@solana/web3.js').Keypair | WalletAdapterSigner;
+
 // ── Planned VeilPay API Types (preserved for backward compatibility) ────
 
 /** Configuration for the Cloak SDK */
@@ -9,7 +22,7 @@ export interface CloakSDKConfig {
   network: string;
   relayerEndpoint?: string;
   /** Optional signer for live mode (falls back to mock when omitted) */
-  signer?: import('@solana/web3.js').Keypair;
+  signer?: CloakSigner;
 }
 
 /** Parameters for depositing tokens into the Cloak pool */

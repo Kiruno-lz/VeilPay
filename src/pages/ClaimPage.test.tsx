@@ -6,18 +6,16 @@ import ClaimPage from './ClaimPage';
 import { AppStateProvider } from '../context/AppState';
 import type { ClaimPayload } from '../lib/claimLink';
 
-// Mock @solana/wallet-adapter-react to avoid provider requirements
-mock.module('@solana/wallet-adapter-react', () => ({
+// Mock the custom useWallet hook directly
+mock.module('../hooks/useWallet', () => ({
   useWallet: () => ({
     connected: false,
     publicKey: null,
-    wallet: null,
-    wallets: [],
+    walletName: null,
     connect: () => Promise.resolve(),
     disconnect: () => Promise.resolve(),
-    select: () => {},
+    selectWallet: () => {},
   }),
-  useConnection: () => ({ connection: null }),
 }));
 
 // Mock parseClaimToken

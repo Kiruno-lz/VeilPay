@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 // Pre-generated valid JWT token for testing
 // Payload: { commitment: 'test-commitment-123', note: 'Test payment', amount: 100.50, recipient: 'test-recipient-456' }
-const VALID_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJjb21taXRtZW50IjoidGVzdC1jb21taXRtZW50LTEyMyIsIm5vdGUiOiJUZXN0IHBheW1lbnQiLCJhbW91bnQiOjEwMC41LCJyZWNpcGllbnQiOiJ0ZXN0LXJlY2lwaWVudC00NTYiLCJpYXQiOjE3Nzg0ODU1NzMsImV4cCI6MTc3OTA5MDM3M30.8vsPI8ZWpe5cNLgDBh9NO1khzGR9ZNf1-0jkd73w6sU';
+const VALID_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJjb21taXRtZW50IjoidGVzdC1jb21taXRtZW50LTEyMyIsIm5vdGUiOiJUZXN0IHBheW1lbnQiLCJhbW91bnQiOjEwMC41LCJyZWNpcGllbnQiOiJ0ZXN0LXJlY2lwaWVudC00NTYiLCJpYXQiOjE3Nzg1MTg4NzQsImV4cCI6MTc3OTEyMzY3NH0.oexLFnQ77kZsnoJKR0-DEKQlpKIRwDTywkg5v0whTeE';
 
 async function navigateWithRetry(page: Page, url: string): Promise<void> {
   let lastError: Error | undefined;
@@ -65,8 +65,8 @@ test.describe('Claim Page', () => {
     const walletSection = page.locator('[data-testid="claim-wallet-section"]');
     await expect(walletSection).toBeVisible();
 
-    // Verify claim button is visible
-    const claimButton = page.locator('[data-testid="claim-button"]');
+    // Verify connect wallet button is visible inside the claim wallet section (wallet not connected in E2E)
+    const claimButton = walletSection.locator('[data-testid="connect-wallet-button"]');
     await expect(claimButton).toBeVisible();
 
     // Take a screenshot
@@ -147,7 +147,7 @@ test.describe('Claim Page', () => {
     const walletSection = page.locator('[data-testid="claim-wallet-section"]');
     await expect(walletSection).toBeVisible();
 
-    const claimButton = page.locator('[data-testid="claim-button"]');
+    const claimButton = walletSection.locator('[data-testid="connect-wallet-button"]');
     await expect(claimButton).toBeVisible();
 
     // Take a screenshot

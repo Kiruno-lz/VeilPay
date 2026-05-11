@@ -1,7 +1,32 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Shield, Loader2, CheckCircle, ExternalLink, AlertCircle, RotateCcw, Wallet } from 'lucide-react';
+import { Keypair } from '@solana/web3.js';
 import { useWallet } from '../hooks/useWallet';
 import { CloakSDK } from '../lib/cloak';
+
+/**
+ * Load a test wallet Keypair for devnet testing.
+ * In dev mode (VITE_USE_TEST_WALLET=true), reads the secret key from
+ * localStorage and creates a Keypair for real devnet interactions.
+ * Returns null in production or if no test wallet is configured.
+ */
+function loadTestWallet(): Keypair | null {
+  if (import.meta.env.VITE_USE_TEST_WALLET !== 'true') {
+    return null;
+  }
+
+  try {
+    const secretKeyJson = localStorage.getItem('veilpay_test_wallet');
+    if (secretKeyJson) {
+      const secretKey = new Uint8Array(JSON.parse(secretKeyJson));
+      return Keypair.fromSecretKey(secretKey);
+    }
+  } catch (err) {
+    console.error('[ClaimButton] Failed to load test wallet:', err);
+  }
+
+  return null;
+}
 
 export interface ClaimButtonProps {
   commitment: string;
@@ -11,11 +36,13 @@ export interface ClaimButtonProps {
 }
 
 export function ClaimButton({ commitment, note, onSuccess, onError }: ClaimButtonProps) {
-  const { connected, publicKey, connect } = useWallet();
+  const { connected, publicKey, connect, signTransaction } = useWallet();
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimStatus, setClaimStatus] = useState<'idle' | 'claiming' | 'success' | 'error'>('idle');
   const [txSignature, setTxSignature] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const testWallet = useMemo(() => loadTestWallet(), []);
 
   const handleClaim = useCallback(async () => {
     if (!connected || !publicKey) return;
@@ -25,7 +52,14 @@ export function ClaimButton({ commitment, note, onSuccess, onError }: ClaimButto
     setErrorMessage(null);
 
     try {
-      const sdk = new CloakSDK({ network: 'devnet' });
+      // Use test wallet for real devnet interactions, or wallet adapter for mock
+      let signer = testWallet;
+      if (!signer && publicKey && signTransaction) {
+        // Browser wallet: pass adapter signer (will fall back to mock with warning)
+        signer = { publicKey, signTransaction } as any;
+      }
+
+      const sdk = new CloakSDK({ network: 'devnet', signer: signer || undefined });
       const result = await sdk.receive({
         commitment,
         note,
@@ -42,7 +76,7 @@ export function ClaimButton({ commitment, note, onSuccess, onError }: ClaimButto
     } finally {
       setIsClaiming(false);
     }
-  }, [connected, publicKey, commitment, note, onSuccess, onError]);
+  }, [connected, publicKey, commitment, note, onSuccess, onError, testWallet, signTransaction]);
 
   const handleConnect = useCallback(async () => {
     try {
