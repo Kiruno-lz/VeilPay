@@ -5,17 +5,23 @@ import UploadCSV from './UploadCSV'
 import DepositCard from './DepositCard'
 import DisburseForm from './DisburseForm'
 import AuditDashboard from './AuditDashboard'
+import { AppStateProvider } from '../context/AppState'
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <AppStateProvider>{children}</AppStateProvider>
+)
 
 describe('UploadCSV', () => {
   it('renders with correct test id and placeholder text', () => {
-    const { getByTestId, getByText } = render(<UploadCSV />)
+    const { getByTestId, getByText } = render(<UploadCSV />, { wrapper })
     expect(getByTestId('upload-csv')).toBeTruthy()
-    expect(getByText('Drag & drop CSV file here')).toBeTruthy()
+    expect(getByText(/Drag/)).toBeTruthy()
+    expect(getByText(/click to browse/)).toBeTruthy()
     expect(getByText('1')).toBeTruthy()
   })
 
   it('applies className prop', () => {
-    const { getByTestId } = render(<UploadCSV className="custom-class" />)
+    const { getByTestId } = render(<UploadCSV className="custom-class" />, { wrapper })
     expect(getByTestId('upload-csv').classList.contains('custom-class')).toBe(true)
   })
 })

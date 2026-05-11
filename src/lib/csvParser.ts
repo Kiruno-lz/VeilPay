@@ -1,10 +1,17 @@
 import Papa from 'papaparse';
 import type { Recipient } from '../types';
 
+export interface RowResult {
+  address: string;
+  amount: number;
+  error?: string;
+}
+
 export interface ParseResult {
   recipients: Recipient[];
   errors: string[];
   total: number;
+  rows: RowResult[];
 }
 
 const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+$/;
@@ -28,17 +35,20 @@ function parseAmount(amountStr: string): number {
 export function parsePayrollCSV(csvContent: string): ParseResult {
   const recipients: Recipient[] = [];
   const errors: string[] = [];
+  const rows: RowResult[] = [];
 
   if (!csvContent || !csvContent.trim()) {
     return {
       recipients: [],
       errors: ['File is empty. Please upload a valid CSV file.'],
       total: 0,
+      rows: [],
     };
   }
 
   const parsed = Papa.parse<string[]>(csvContent, {
     skipEmptyLines: true,
+    comments: '#',
   });
 
   if (parsed.data.length === 0) {
@@ -46,6 +56,7 @@ export function parsePayrollCSV(csvContent: string): ParseResult {
       recipients: [],
       errors: ['File is empty. Please upload a valid CSV file.'],
       total: 0,
+      rows: [],
     };
   }
 
@@ -60,39 +71,45 @@ export function parsePayrollCSV(csvContent: string): ParseResult {
       recipients: [],
       errors: ['Missing required header: "address,amount". Please upload a valid CSV file.'],
       total: 0,
+      rows: [],
     };
   }
 
-  const rows = parsed.data.slice(1);
+  const dataRows = parsed.data.slice(1);
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
+  for (let i = 0; i < dataRows.length; i++) {
+    const row = dataRows[i];
 
     if (!row || row.length < 2) {
       continue;
     }
 
-    const address = row[0]?.trim();
-    const amountStr = row[1]?.trim();
+    const address = row[0]?.trim() ?? '';
+    const amountStr = row[1]?.trim() ?? '';
 
     if (!address && !amountStr) {
       continue;
     }
 
     if (!isValidSolanaAddress(address)) {
-      errors.push(`Invalid Solana address: ${address}`);
+      const error = `Invalid Solana address: ${address}`;
+      errors.push(error);
+      rows.push({ address, amount: 0, error });
       continue;
     }
 
     try {
       const amount = parseAmount(amountStr);
       recipients.push({ address, amount });
+      rows.push({ address, amount });
     } catch {
-      errors.push(`Invalid amount: ${amountStr}`);
+      const error = `Invalid amount: ${amountStr}`;
+      errors.push(error);
+      rows.push({ address, amount: 0, error });
     }
   }
 
   const total = recipients.reduce((sum, r) => sum + r.amount, 0);
 
-  return { recipients, errors, total };
+  return { recipients, errors, total, rows };
 }

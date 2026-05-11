@@ -1,0 +1,6 @@
+# 错误header案例
+# header 不是标准的 address,amount
+# 预期结果：解析器应报 header 错误
+wallet,value
+7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU,1.5
+Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,0.75
