@@ -6,7 +6,6 @@ import UploadCSV from './UploadCSV'
 import DepositCard from './DepositCard'
 import DisburseForm from './DisburseForm'
 import AuditDashboard from './AuditDashboard'
-import { AppStateProvider } from '../context/AppState'
 
 // Mock wallet as connected for DepositCard tests
 mock.module('@solana/wallet-adapter-react', () => ({
@@ -25,10 +24,6 @@ mock.module('../hooks/useWalletBalance', () => ({
     refresh: () => Promise.resolve(),
   }),
 }))
-
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <AppStateProvider>{children}</AppStateProvider>
-)
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <AppStateProvider>{children}</AppStateProvider>

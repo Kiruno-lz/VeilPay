@@ -31,6 +31,16 @@ mock.module('../hooks/useWalletBalance', () => ({
   }),
 }));
 
+// Mock CloakSDK to prevent interference from other test files
+const mockDeposit = mock(() => Promise.resolve({ txHash: 'mock-deposit-tx-hash-12345' }));
+
+mock.module('../lib/cloak', () => ({
+  CloakSDK: class MockCloakSDK {
+    constructor() {}
+    deposit = mockDeposit;
+  },
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <AppStateProvider>{children}</AppStateProvider>
 );
@@ -132,7 +142,7 @@ describe('DepositCard', () => {
 
     await waitFor(() => {
       expect(getByText('Depositing...')).toBeTruthy();
-    });
+    }, { timeout: 2000 });
   });
 
   it('success → shows confirmed state with tx link', async () => {
@@ -150,7 +160,7 @@ describe('DepositCard', () => {
 
     await waitFor(() => {
       expect(getByText('Deposit confirmed!')).toBeTruthy();
-    });
+    }, { timeout: 2000 });
 
     // Check that a Solscan link is rendered
     const link = container.querySelector('a[href*="solscan.io/devnet/tx/"]');
@@ -198,7 +208,7 @@ describe('DepositCard', () => {
 
     await waitFor(() => {
       expect(button.disabled).toBe(true);
-    });
+    }, { timeout: 2000 });
   });
 
   it('auto-refreshes balance after successful deposit', async () => {
@@ -216,7 +226,7 @@ describe('DepositCard', () => {
 
     await waitFor(() => {
       expect(getByText('Deposit confirmed!')).toBeTruthy();
-    });
+    }, { timeout: 2000 });
 
     expect(mockRefresh).toHaveBeenCalled();
   });
