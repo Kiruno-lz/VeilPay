@@ -13,6 +13,7 @@ let mockWalletState = {
   connected: false,
   publicKey: null as { toBase58: () => string } | null,
   signTransaction: null as ((tx: any) => Promise<any>) | null,
+  sendTransaction: null as ((tx: any) => Promise<string>) | null,
 };
 
 mock.module('@solana/wallet-adapter-react', () => ({
@@ -56,6 +57,7 @@ describe('DepositCard', () => {
       connected: false,
       publicKey: null,
       signTransaction: null,
+      sendTransaction: null,
     };
     mockRefresh.mockClear();
   });
@@ -65,6 +67,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByTestId, getByPlaceholderText, getByRole } = render(
@@ -87,6 +90,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByText } = render(<DepositCard />, { wrapper });
@@ -98,6 +102,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(
@@ -119,6 +124,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -138,6 +144,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -157,6 +164,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByText, getByPlaceholderText, container, getByRole } = render(<DepositCard />, { wrapper });
@@ -167,10 +175,10 @@ describe('DepositCard', () => {
     fireEvent.click(getByRole('button', { name: /^deposit$/i }));
 
     await waitFor(() => {
-      expect(getByText('Deposit confirmed!')).toBeTruthy();
+      expect(getByText(/Deposit confirmed!/)).toBeTruthy();
     }, { timeout: 2000 });
 
-    // Check that a Solscan link is rendered
+    // Solscan link should be present for real transactions
     const link = container.querySelector('a[href*="solscan.io/devnet/tx/"]');
     expect(link).toBeTruthy();
   });
@@ -180,6 +188,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -206,6 +215,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -226,6 +236,7 @@ describe('DepositCard', () => {
       connected: true,
       publicKey: { toBase58: () => MOCK_PUBLIC_KEY },
       signTransaction: async (tx: any) => tx,
+      sendTransaction: async (tx: any) => 'mock-tx-signature',
     };
 
     const { getByText, getByPlaceholderText, getByRole } = render(<DepositCard />, { wrapper });
@@ -236,7 +247,7 @@ describe('DepositCard', () => {
     fireEvent.click(getByRole('button', { name: /^deposit$/i }));
 
     await waitFor(() => {
-      expect(getByText('Deposit confirmed!')).toBeTruthy();
+      expect(getByText(/Deposit confirmed!/)).toBeTruthy();
     }, { timeout: 2000 });
 
     expect(mockRefresh).toHaveBeenCalled();

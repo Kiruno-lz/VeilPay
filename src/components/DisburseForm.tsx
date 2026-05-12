@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAppState } from '../context/useAppState';
-import { useWallet } from '../hooks/useWallet';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { CloakSDK } from '../lib/cloak';
 import { generateClaimLink } from '../lib/claimLink';
 import type { Recipient, ClaimLink } from '../types';
@@ -11,7 +11,7 @@ interface DisburseFormProps {
 
 function DisburseForm({ className }: DisburseFormProps) {
   const { state, dispatch } = useAppState();
-  const { connected } = useWallet();
+  const { connected, publicKey, signTransaction } = useWallet();
   const recipients = state.recipients;
   const disbursement = state.disbursement;
 
@@ -75,8 +75,11 @@ function DisburseForm({ className }: DisburseFormProps) {
     dispatch({ type: 'SET_DISBURSEMENT_PROGRESS', payload: 0 });
     dispatch({ type: 'SET_CLAIM_LINKS', payload: [] });
 
-    // Live mode requires a signer Keypair; for now we use mock fallback
-    const sdk = new CloakSDK({ network: 'devnet' });
+    let signer = undefined;
+    if (publicKey && signTransaction) {
+      signer = { publicKey, signTransaction } as any;
+    }
+    const sdk = new CloakSDK({ network: 'devnet', signer });
 
     for (let i = 0; i < recipients.length; i++) {
       const success = await processRecipient(sdk, recipients[i], i);
@@ -96,8 +99,11 @@ function DisburseForm({ className }: DisburseFormProps) {
     setErrorMessage(null);
     dispatch({ type: 'SET_DISBURSEMENT_STATUS', payload: 'disbursing' });
 
-    // Live mode requires a signer Keypair; for now we use mock fallback
-    const sdk = new CloakSDK({ network: 'devnet' });
+    let signer = undefined;
+    if (publicKey && signTransaction) {
+      signer = { publicKey, signTransaction } as any;
+    }
+    const sdk = new CloakSDK({ network: 'devnet', signer });
 
     const currentIndex = disbursement.progress;
     const success = await processRecipient(sdk, errorRecipient, currentIndex);
@@ -121,8 +127,11 @@ function DisburseForm({ className }: DisburseFormProps) {
     setErrorMessage(null);
     dispatch({ type: 'SET_DISBURSEMENT_STATUS', payload: 'disbursing' });
 
-    // Live mode requires a signer Keypair; for now we use mock fallback
-    const sdk = new CloakSDK({ network: 'devnet' });
+    let signer = undefined;
+    if (publicKey && signTransaction) {
+      signer = { publicKey, signTransaction } as any;
+    }
+    const sdk = new CloakSDK({ network: 'devnet', signer });
 
     const currentIndex = disbursement.progress;
     // Skip the failed recipient and continue with the next one
@@ -185,7 +194,7 @@ function DisburseForm({ className }: DisburseFormProps) {
                       {recipient.address.slice(0, 8)}...{recipient.address.slice(-8)}
                     </span>
                     <span className="text-white">
-                      {recipient.amount.toFixed(2)} USDC
+                      {(recipient.amount / 1_000_000).toFixed(2)} USDC
                     </span>
                   </li>
                 ))}

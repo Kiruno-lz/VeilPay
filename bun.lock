@@ -6,6 +6,7 @@
       "name": "veilpay",
       "dependencies": {
         "@cloak.dev/sdk": "^0.1.6",
+        "@cloak.dev/sdk-devnet": "^0.1.5-devnet.1",
         "@solana/spl-token": "^0.4.14",
         "@solana/wallet-adapter-base": "^0.9.27",
         "@solana/wallet-adapter-react": "^0.15.39",
@@ -105,6 +106,8 @@
     "@bramus/specificity": ["@bramus/specificity@2.4.2", "", { "dependencies": { "css-tree": "^3.0.0" }, "bin": { "specificity": "bin/cli.js" } }, "sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw=="],
 
     "@cloak.dev/sdk": ["@cloak.dev/sdk@0.1.6", "", { "dependencies": { "@jup-ag/api": "^6.0.48", "@lightprotocol/hasher.rs": "^0.2.1", "@noble/hashes": "^1.8.0", "@solana/spl-token": "0.4.14", "@solana/web3.js": "^1.98.0", "bs58": "^6.0.0", "circomlibjs": "0.1.7", "ffjavascript": "^0.3.0", "snarkjs": "0.7.6", "tweetnacl": "^1.0.3", "tweetnacl-util": "^0.15.1", "yaml": "^2.8.3" }, "peerDependencies": { "@switchboard-xyz/common": "^5.6.1", "@switchboard-xyz/on-demand": "^3.8.2" }, "optionalPeers": ["@switchboard-xyz/common", "@switchboard-xyz/on-demand"] }, "sha512-qzjyszfVWRX+IWZvkBkkLryHVMuz39s5hBHrRrTwYbmmTY57gf9q6vdPZt9XtiNTF2gNWQ3RCqIOfJqEW5gl8Q=="],
+
+    "@cloak.dev/sdk-devnet": ["@cloak.dev/sdk-devnet@0.1.5-devnet.1", "", { "dependencies": { "@jup-ag/api": "^6.0.48", "@lightprotocol/hasher.rs": "^0.2.1", "@noble/hashes": "^1.8.0", "@solana/spl-token": "0.4.14", "@solana/web3.js": "^1.98.0", "bs58": "^6.0.0", "circomlibjs": "0.1.7", "ffjavascript": "^0.3.0", "snarkjs": "0.7.6", "tweetnacl": "^1.0.3", "tweetnacl-util": "^0.15.1", "yaml": "^2.8.3" }, "peerDependencies": { "@switchboard-xyz/common": "^5.6.1", "@switchboard-xyz/on-demand": "^3.8.2" }, "optionalPeers": ["@switchboard-xyz/common", "@switchboard-xyz/on-demand"] }, "sha512-wtjQWc7jfIuH5HCznOoADyaG3shnf0STb1yuPLYWnGW0r9mgSencgqGBhinAkyCWRPkrt079MZVZWgbjgF6OsQ=="],
 
     "@csstools/color-helpers": ["@csstools/color-helpers@6.0.2", "", {}, "sha512-LMGQLS9EuADloEFkcTBR3BwV/CGHV7zyDxVRtVDTwdI2Ca4it0CCVTT9wCkxSgokjE5Ho41hEPgb8OEUwoXr6Q=="],
 

@@ -1,11 +1,11 @@
 // VeilPay — Cloak SDK Adapter Layer
 //
 // Bridges the planned VeilPay API to the real @cloak.dev/sdk UTXO API.
-// When a signer (Keypair) is available, calls the real SDK.
+// When a signer (Keypair or WalletAdapter) is available, calls the real SDK.
 // When no signer is available, gracefully falls back to mock behavior
 // so the project can compile and run without a wallet connection.
 //
-// Real package: @cloak.dev/sdk
+// Real package: @cloak.dev/sdk (mainnet) / @cloak.dev/sdk-devnet (devnet)
 
 import {
   transact,
@@ -18,6 +18,10 @@ import {
   NATIVE_SOL_MINT,
   type Utxo,
 } from '@cloak.dev/sdk';
+import {
+  CLOAK_PROGRAM_ID as DEVNET_CLOAK_PROGRAM_ID,
+  DEVNET_MOCK_USDC_MINT,
+} from '@cloak.dev/sdk-devnet';
 // Bun's mock.module() is file-scoped but persists across the process, so other
 // test files that mock @solana/web3.js leak their mock into this module. By
 // dynamically importing with a cache-busting query string we bypass the mock
@@ -68,13 +72,14 @@ export class CloakSDK {
   private config: CloakSDKConfig;
   private connection: any;
   private signer: CloakSigner | null = null;
-  private programId = CLOAK_PROGRAM_ID;
+  private programId: PublicKey;
   private cachedKeys: ReturnType<typeof generateCloakKeys> | null = null;
   private static readonly DEFAULT_TIMEOUT_MS = 30000;
 
   constructor(config: CloakSDKConfig & { signer?: CloakSigner }) {
     this.config = config;
     this.signer = config.signer ?? null;
+    this.programId = this._getProgramId(config.network);
     this.connection = this._createConnectionSync(config.network);
     // Dynamically import the real Connection in the background so that
     // live operations use the authentic Solana client while tests still
@@ -111,6 +116,31 @@ export class CloakSDK {
     return null;
   }
 
+  /** Get the appropriate program ID for the current network. */
+  private _getProgramId(network: string): PublicKey {
+    if (network === 'devnet') {
+      return DEVNET_CLOAK_PROGRAM_ID;
+    }
+    return CLOAK_PROGRAM_ID;
+  }
+
+  /** Get the appropriate mint address for a token on the current network. */
+  private _getMintAddress(token: string): PublicKey {
+    if (this.config.network === 'devnet' && token === 'USDC') {
+      return DEVNET_MOCK_USDC_MINT;
+    }
+    return NATIVE_SOL_MINT;
+  }
+
+  /** Get the decimal places for a token. */
+  private _getTokenDecimals(token: string): number {
+    if (token === 'USDC') {
+      return 6;
+    }
+    // Default to SOL (9 decimals)
+    return 9;
+  }
+
   /** Get the current network endpoint URL. */
   get endpoint(): string {
     return this.connection.rpcEndpoint;
@@ -124,6 +154,7 @@ export class CloakSDK {
   /** Switch network and recreate the connection. */
   setNetwork(network: string): void {
     this.config = { ...this.config, network };
+    this.programId = this._getProgramId(network);
     this.connection = this._createConnectionSync(network);
     this._createConnection(network).then((conn) => {
       this.connection = conn;
@@ -181,46 +212,43 @@ export class CloakSDK {
       return this._mockDeposit(params);
     }
 
-    // Wallet adapter can't provide a Keypair (no private key access).
-    // For browser wallets, we fall back to mock with a clear message.
-    // TODO: Implement manual transaction building + wallet adapter signing
-    // when @cloak.dev/sdk supports adapter-style signers.
-    if (this._isWalletAdapter(this.signer)) {
-      console.warn(
-        '[CloakSDK] deposit: Wallet adapter signer detected. ' +
-          'Browser wallets cannot provide a Keypair for @cloak.dev/sdk transact(). ' +
-          'Use a test wallet (VITE_USE_TEST_WALLET=true) for real devnet interactions. ' +
-          'Falling back to mock mode.'
-      );
-      return this._mockDeposit(params);
-    }
-
     this._ensureKeys();
 
     // Create a zero UTXO as input (depositing from outside)
-    const zeroUtxo = await this._createZeroUtxo();
+    const zeroUtxo = await this._createZeroUtxo(params.token);
 
     // Create output UTXO with the deposit amount
-    const amountLamports = BigInt(Math.floor(params.amount * 1e9));
-    const outputUtxo = await this._createUtxo(amountLamports);
+    const decimals = this._getTokenDecimals(params.token);
+    const amountBaseUnits = BigInt(Math.floor(params.amount * 10 ** decimals));
+    const outputUtxo = await this._createUtxo(amountBaseUnits, params.token);
 
     const signerPublicKey = this._getSignerPublicKey();
+
+    // Build transact options based on signer type
+    const transactOptions: any = {
+      connection: this.connection,
+      programId: this.programId,
+      relayUrl: this.config.relayerEndpoint,
+      onProgress: (status: string) => console.log(`[CloakSDK] deposit: ${status}`),
+    };
+
+    // For Keypair signers, use depositorKeypair
+    // For wallet adapter signers, use signTransaction callback
+    if (this._isKeypair(this.signer)) {
+      transactOptions.depositorKeypair = this.signer;
+    } else if (this._isWalletAdapter(this.signer)) {
+      transactOptions.signTransaction = this.signer.signTransaction.bind(this.signer);
+    }
 
     const result = await this._withTimeout(
       transact(
         {
           inputUtxos: [zeroUtxo],
           outputUtxos: [outputUtxo],
-          externalAmount: amountLamports,
+          externalAmount: amountBaseUnits,
           depositor: signerPublicKey!,
         },
-        {
-          connection: this.connection,
-          programId: this.programId,
-          depositorKeypair: this.signer as Keypair,
-          relayUrl: this.config.relayerEndpoint,
-          onProgress: (status) => console.log(`[CloakSDK] deposit: ${status}`),
-        }
+        transactOptions
       ),
       'deposit'
     );
@@ -234,18 +262,6 @@ export class CloakSDK {
       console.warn(
         '[CloakSDK] transfer: No signer available. ' +
           'For devnet testing, set VITE_USE_TEST_WALLET=true and provide a test wallet. ' +
-          'Falling back to mock mode.'
-      );
-      return this._mockTransfer(params);
-    }
-
-    // Wallet adapter can't provide a Keypair (no private key access).
-    // For browser wallets, we fall back to mock with a clear message.
-    if (this._isWalletAdapter(this.signer)) {
-      console.warn(
-        '[CloakSDK] transfer: Wallet adapter signer detected. ' +
-          'Browser wallets cannot provide a Keypair for @cloak.dev/sdk transact(). ' +
-          'Use a test wallet (VITE_USE_TEST_WALLET=true) for real devnet interactions. ' +
           'Falling back to mock mode.'
       );
       return this._mockTransfer(params);
@@ -266,18 +282,6 @@ export class CloakSDK {
       console.warn(
         '[CloakSDK] receive: No signer available. ' +
           'For devnet testing, set VITE_USE_TEST_WALLET=true and provide a test wallet. ' +
-          'Falling back to mock mode.'
-      );
-      return this._mockReceive(params);
-    }
-
-    // Wallet adapter can't provide a Keypair (no private key access).
-    // For browser wallets, we fall back to mock with a clear message.
-    if (this._isWalletAdapter(this.signer)) {
-      console.warn(
-        '[CloakSDK] receive: Wallet adapter signer detected. ' +
-          'Browser wallets cannot provide a Keypair for @cloak.dev/sdk transact(). ' +
-          'Use a test wallet (VITE_USE_TEST_WALLET=true) for real devnet interactions. ' +
           'Falling back to mock mode.'
       );
       return this._mockReceive(params);
@@ -372,7 +376,7 @@ export class CloakSDK {
     return this.cachedKeys;
   }
 
-  private async _createZeroUtxo(): Promise<Utxo> {
+  private async _createZeroUtxo(token: string = 'SOL'): Promise<Utxo> {
     // The real SDK doesn't export createZeroUtxo directly.
     // We construct a minimal zero-value UTXO manually.
     const keypair = generateViewingKeyPair();
@@ -383,20 +387,30 @@ export class CloakSDK {
         publicKey: BigInt('0x' + uint8ArrayToHex(keypair.publicKey)),
       },
       blinding: 0n,
-      mintAddress: NATIVE_SOL_MINT,
+      mintAddress: this._getMintAddress(token),
     };
   }
 
-  private async _createUtxo(amount: bigint): Promise<Utxo> {
+  private async _createUtxo(amount: bigint, token: string = 'SOL'): Promise<Utxo> {
     const keypair = generateViewingKeyPair();
+    // Generate a random blinding factor using crypto-safe random bytes
+    const blindingBytes = new Uint8Array(32);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(blindingBytes);
+    } else {
+      // Fallback for Node.js environment
+      for (let i = 0; i < 32; i++) {
+        blindingBytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
     return {
       amount,
       keypair: {
         privateKey: BigInt('0x' + uint8ArrayToHex(keypair.privateKey)),
         publicKey: BigInt('0x' + uint8ArrayToHex(keypair.publicKey)),
       },
-      blinding: BigInt('0x' + randomBase58(32)),
-      mintAddress: NATIVE_SOL_MINT,
+      blinding: BigInt('0x' + uint8ArrayToHex(blindingBytes)),
+      mintAddress: this._getMintAddress(token),
     };
   }
 

@@ -42,7 +42,7 @@ interface DepositCardProps {
 }
 
 function DepositCard({ className }: DepositCardProps) {
-  const { connected, signTransaction, publicKey } = useWallet();
+  const { connected, signTransaction, sendTransaction, publicKey } = useWallet();
   const { publicUsdc, refresh } = useWalletBalance();
   const [amount, setAmount] = useState('');
   const [depositState, setDepositState] = useState<DepositState>('idle');
@@ -80,11 +80,11 @@ function DepositCard({ className }: DepositCardProps) {
     setDepositState('proving');
 
     try {
-      // Use test wallet for real devnet interactions, or wallet adapter for mock
+      // Use test wallet Keypair if available, otherwise use browser wallet adapter
       let signer = testWallet;
       if (!signer && publicKey && signTransaction) {
-        // Browser wallet: pass adapter signer (will fall back to mock with warning)
-        signer = { publicKey, signTransaction } as any;
+        // Browser wallet adapter for real devnet transactions
+        signer = { publicKey, signTransaction, sendTransaction } as any;
       }
 
       const sdk = new CloakSDK({ network: 'devnet', signer: signer || undefined });
@@ -100,7 +100,7 @@ function DepositCard({ className }: DepositCardProps) {
       setErrorMessage(message);
       setDepositState('error');
     }
-  }, [amount, validate, refresh, testWallet, publicKey, signTransaction]);
+  }, [amount, validate, refresh, testWallet, publicKey, signTransaction, sendTransaction]);
 
   const handleRetry = useCallback(() => {
     setDepositState('idle');
@@ -152,17 +152,19 @@ function DepositCard({ className }: DepositCardProps) {
               )}
 
               {depositState === 'confirmed' && txHash && (
-                <p className="text-green-400 text-sm mb-4">
-                  Deposit confirmed!{' '}
-                  <a
-                    href={`https://solscan.io/devnet/tx/${txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-green-300"
-                  >
-                    View on Solscan
-                  </a>
-                </p>
+                <div className="text-sm mb-4 text-green-400">
+                  <p>
+                    Deposit confirmed!{' '}
+                    <a
+                      href={`https://solscan.io/devnet/tx/${txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-green-300"
+                    >
+                      View on Solscan
+                    </a>
+                  </p>
+                </div>
               )}
 
               {depositState === 'error' ? (

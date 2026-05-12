@@ -13,11 +13,11 @@ const MOCK_PUBLIC_KEY = 'MockPublicKey123';
 
 let mockWalletState = {
   connected: false,
-  publicKey: null as string | null,
+  publicKey: null as any,
   signTransaction: null as ((tx: any) => Promise<any>) | null,
 };
 
-mock.module('../hooks/useWallet', () => ({
+mock.module('@solana/wallet-adapter-react', () => ({
   useWallet: () => mockWalletState,
 }));
 
@@ -114,8 +114,8 @@ describe('DisburseForm', () => {
 
   it('renders recipient list when recipients exist', () => {
     const recipients: Recipient[] = [
-      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100 },
-      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200 },
+      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100_000_000 },
+      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200_000_000 },
     ];
     const { getByTestId, getByText } = renderWithState({ recipients });
 
@@ -139,7 +139,7 @@ describe('DisburseForm', () => {
     };
 
     const recipients: Recipient[] = [
-      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100 },
+      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100_000_000 },
     ];
     const { getByTestId } = renderWithState({ recipients });
 
@@ -149,8 +149,8 @@ describe('DisburseForm', () => {
 
   it('clicking disburse shows progress', async () => {
     const recipients: Recipient[] = [
-      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100 },
-      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200 },
+      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100_000_000 },
+      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200_000_000 },
     ];
 
     const { dispatch, getByTestId } = renderWithState({ recipients });
@@ -168,7 +168,7 @@ describe('DisburseForm', () => {
 
   it('successful disburse generates claim links', async () => {
     const recipients: Recipient[] = [
-      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100 },
+      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100_000_000 },
     ];
 
     const { dispatch, getByTestId } = renderWithState({ recipients });
@@ -197,7 +197,7 @@ describe('DisburseForm', () => {
         type: 'ADD_CLAIM_LINK',
         payload: expect.objectContaining({
           recipient: expect.stringContaining('...'),
-          amount: 100,
+          amount: 100_000_000,
           token: 'USDC',
           url: 'https://claim.example.com/token123',
           status: 'pending',
@@ -210,7 +210,7 @@ describe('DisburseForm', () => {
     mockTransfer.mockImplementation(() => Promise.reject(new Error('Network error')));
 
     const recipients: Recipient[] = [
-      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100 },
+      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100_000_000 },
     ];
 
     const { getByTestId, getByText, container } = renderWithState({ recipients });
@@ -235,8 +235,8 @@ describe('DisburseForm', () => {
       .mockImplementation(() => Promise.resolve({ txHash: 'mock-tx-hash' }));
 
     const recipients: Recipient[] = [
-      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100 },
-      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200 },
+      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100_000_000 },
+      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200_000_000 },
     ];
 
     const { getByTestId, container } = renderWithState({ recipients });
@@ -270,8 +270,8 @@ describe('DisburseForm', () => {
       .mockImplementation(() => Promise.resolve({ txHash: 'mock-tx-hash' }));
 
     const recipients: Recipient[] = [
-      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100 },
-      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200 },
+      { address: 'ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ', amount: 100_000_000 },
+      { address: 'XYZ987WVU654TSR321QPO098NML765KJI432HGF109EDC876ZBA', amount: 200_000_000 },
     ];
 
     const { getByTestId, container } = renderWithState({ recipients });
