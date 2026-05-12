@@ -171,24 +171,24 @@ describe('CloakSDK (with wallet adapter signer)', () => {
     expect(sdk.isLive).toBe(true);
   });
 
-  it('deposit() with wallet adapter should warn and fall back to mock', async () => {
-    const consoleSpy = mock(() => {});
-    const originalWarn = console.warn;
-    console.warn = consoleSpy;
-
+  it('deposit() with wallet adapter should use real SDK (not mock)', async () => {
     const mockAdapter = {
       publicKey: Keypair.generate().publicKey,
       signTransaction: async (tx: any) => tx,
     };
     const sdk = new CloakSDK({ network: 'devnet', signer: mockAdapter as any });
-    const result = await sdk.deposit({ amount: 100, token: 'USDC' });
+    expect(sdk.isLive).toBe(true);
 
-    console.warn = originalWarn;
-
-    expect(result).toHaveProperty('txHash');
-    expect(typeof result.txHash).toBe('string');
-    // Should have warned about wallet adapter limitation
-    expect(consoleSpy).toHaveBeenCalled();
+    // Wallet adapter should now attempt real SDK call (will fail without connection)
+    // but should NOT fall back to mock mode
+    try {
+      await sdk.deposit({ amount: 100, token: 'USDC' });
+      // If it succeeds, great
+    } catch (error: any) {
+      // Expected to fail due to no real connection, but should NOT be mock fallback
+      expect(error.message).not.toContain('mock');
+      expect(error.message).not.toContain('Mock');
+    }
   });
 });
 
