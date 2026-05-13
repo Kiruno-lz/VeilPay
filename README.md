@@ -8,8 +8,7 @@ VeilPay is a browser-based tool that lets organizations and DAOs batch-pay contr
 
 ## Live Demo
 
-[veilpay.vercel.app](https://veilpay.vercel.app) (Devnet)  
-Demo Video: [YouTube / Loom link TBD]
+[veilpay-sol.vercel.app](https://veilpay-sol.vercel.app) (Devnet)
 
 ---
 
@@ -49,8 +48,8 @@ Demo Video: [YouTube / Loom link TBD]
 
 ```bash
 # Clone
-git clone https://github.com/YOUR_NAME/veilpay-frontier.git
-cd veilpay-frontier
+git clone https://github.com/Kiruno-lz/VeilPay.git
+cd VeilPay
 
 # Install
 bun install
@@ -121,15 +120,6 @@ veilpay-frontier/
 | [dum.fun](https://superteam.fun/earn/listing/dumdotfun) — Token launch + engagement | $500 USDC | 10-minute bonus |
 
 ---
-
-## Screenshots
-
-*(To be added during Day 4 polish)*
-
-1. Admin Dashboard — CSV uploaded, ready to disburse  
-2. Disbursement Confirmation — 12 recipients, $18,400 total, fully shielded  
-3. Stealth Claim Page — Recipient view, one-click claim  
-4. Audit Dashboard — Viewing keys + decrypted report  
 
 ---
 

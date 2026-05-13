@@ -1,8 +1,8 @@
 // Shared TypeScript types
 
 // === Cloak SDK Types ===
-export * from './cloak';
 import type { TransactionRecord } from './cloak';
+export * from './cloak';
 
 // === App State Types ===
 
@@ -30,13 +30,6 @@ export interface ViewingKey {
   status: 'active' | 'revoked';
 }
 
-export interface TransactionRecord {
-  date: Date;
-  amount: number;
-  recipient: string;
-  type: 'deposit' | 'transfer' | 'receive';
-  txHash: string;
-}
 
 export interface AppState {
   wallet: {
