@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
 import type { WalletName } from '@solana/wallet-adapter-base';
+import type { Transaction } from '@solana/web3.js';
 import { useAppState } from '../context/useAppState';
 
 export interface UseWalletReturn {
@@ -10,6 +11,7 @@ export interface UseWalletReturn {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   selectWallet: (walletName: string) => void;
+  signTransaction: ((tx: Transaction) => Promise<Transaction>) | null;
 }
 
 export function useWallet(): UseWalletReturn {
@@ -62,5 +64,9 @@ export function useWallet(): UseWalletReturn {
     connect,
     disconnect,
     selectWallet,
+    signTransaction:
+      solanaWallet.wallet?.adapter && 'signTransaction' in solanaWallet.wallet.adapter
+        ? (solanaWallet.wallet.adapter.signTransaction as (tx: Transaction) => Promise<Transaction>)
+        : null,
   };
 }

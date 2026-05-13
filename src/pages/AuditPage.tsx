@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Download, Unlock, Loader2 } from 'lucide-react';
+import { Eye, Unlock, Loader2 } from 'lucide-react';
 import { useAppState } from '../context/useAppState';
 import { CloakSDK } from '../lib/cloak';
 import TransactionTable from '../components/TransactionTable';

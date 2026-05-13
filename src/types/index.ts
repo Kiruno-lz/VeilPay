@@ -2,6 +2,7 @@
 
 // === Cloak SDK Types ===
 export * from './cloak';
+import type { TransactionRecord } from './cloak';
 
 // === App State Types ===
 

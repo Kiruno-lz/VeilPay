@@ -27,7 +27,7 @@ import {
 // dynamically importing with a cache-busting query string we bypass the mock
 // and guarantee that CloakSDK always uses the authentic Solana Connection
 // regardless of test mocking order.
-import type { Keypair, PublicKey, Transaction } from '@solana/web3.js';
+import type { Keypair, PublicKey } from '@solana/web3.js';
 import type {
   CloakSDKConfig,
   CloakSigner,
