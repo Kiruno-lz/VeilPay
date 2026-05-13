@@ -59,18 +59,19 @@ describe('AdminPage', () => {
 
   it('should render 4 step sections', () => {
     const { container } = render(<AdminPage />, { wrapper: Wrapper });
-    const sections = container.querySelectorAll('section');
-    expect(sections.length).toBe(4);
+    const stepSections = container.querySelectorAll('[data-testid^="step-"]');
+    expect(stepSections.length).toBe(4);
   });
 
   it('should render step numbers 1-4', () => {
     const { container } = render(<AdminPage />, { wrapper: Wrapper });
-    const stepNumbers = container.querySelectorAll('span.rounded-full');
+    // Step numbers are rendered as step indicators by AdminPage
+    const stepNumbers = container.querySelectorAll('[data-testid^="step-"]');
     expect(stepNumbers.length).toBe(4);
-    expect(stepNumbers[0].textContent).toBe('1');
-    expect(stepNumbers[1].textContent).toBe('2');
-    expect(stepNumbers[2].textContent).toBe('3');
-    expect(stepNumbers[3].textContent).toBe('4');
+    expect(stepNumbers[0].getAttribute('data-testid')).toBe('step-1');
+    expect(stepNumbers[1].getAttribute('data-testid')).toBe('step-2');
+    expect(stepNumbers[2].getAttribute('data-testid')).toBe('step-3');
+    expect(stepNumbers[3].getAttribute('data-testid')).toBe('step-4');
   });
 
   it('should render step titles', () => {
@@ -83,9 +84,9 @@ describe('AdminPage', () => {
     expect(titles).toContain('Audit');
   });
 
-  it('should render header with VeilPay Admin title', () => {
+  it('should render header with VeilPay logo', () => {
     const { getByText } = render(<AdminPage />, { wrapper: Wrapper });
-    expect(getByText('VeilPay Admin')).toBeTruthy();
+    expect(getByText('VeilPay')).toBeTruthy();
   });
 
   it('should render UploadCSV placeholder', () => {

@@ -3,6 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Keypair } from '@solana/web3.js';
 import { useWalletBalance } from '../hooks/useWalletBalance';
 import { CloakSDK } from '../lib/cloak';
+import { cn } from '../lib/utils';
 
 /**
  * Load a test wallet Keypair for devnet testing.
@@ -123,18 +124,15 @@ function DepositCard({ className }: DepositCardProps) {
   return (
     <div
       data-testid="deposit-card"
-      className={`bg-gray-800 border border-gray-700 rounded-lg p-6 ${className || ''}`}
+      className={cn('rounded-lg p-6', className)}
     >
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-          2
-        </div>
         <div className="flex-1">
           <h3 className="text-white font-semibold mb-4">Deposit</h3>
 
           {connected ? (
             <>
-              <p className="text-gray-400 mb-2">
+              <p className="text-neutral-400 mb-2">
                 Balance: {publicUsdc !== null ? publicUsdc.toFixed(2) : '0.00'} USDC
               </p>
               <input
@@ -144,33 +142,38 @@ function DepositCard({ className }: DepositCardProps) {
                 value={amount}
                 onInput={handleAmountChange}
                 disabled={isProving}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-500 mb-4 disabled:opacity-50"
+                className={cn(
+                  'w-full rounded-lg px-4 py-2 mb-4 disabled:opacity-50',
+                  'bg-neutral-800 border border-neutral-600 text-neutral-100 placeholder-neutral-500',
+                  'focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20'
+                )}
               />
 
               {depositState === 'error' && errorMessage && (
-                <p className="text-red-400 text-sm mb-4">{errorMessage}</p>
+                <p className="text-error-500 text-sm mb-4">{errorMessage}</p>
               )}
 
               {depositState === 'confirmed' && txHash && (
-                <div className="text-sm mb-4 text-green-400">
-                  <p>
-                    Deposit confirmed!{' '}
-                    <a
-                      href={`https://solscan.io/devnet/tx/${txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:text-green-300"
-                    >
-                      View on Solscan
-                    </a>
-                  </p>
-                </div>
+                <p className="text-success-500 text-sm mb-4">
+                  Deposit confirmed!{' '}
+                  <a
+                    href={`https://solscan.io/devnet/tx/${txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-success-400"
+                  >
+                    View on Solscan
+                  </a>
+                </p>
               )}
 
               {depositState === 'error' ? (
                 <button
                   onClick={handleRetry}
-                  className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-500"
+                  className={cn(
+                    'w-full font-semibold py-2 px-4 rounded-lg',
+                    'bg-primary-500 hover:bg-primary-600 text-neutral-0'
+                  )}
                 >
                   Retry
                 </button>
@@ -178,14 +181,17 @@ function DepositCard({ className }: DepositCardProps) {
                 <button
                   onClick={handleDeposit}
                   disabled={isDisabled}
-                  className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500"
+                  className={cn(
+                    'w-full font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed',
+                    'bg-primary-500 hover:bg-primary-600 text-neutral-0'
+                  )}
                 >
                   {isProving ? 'Depositing...' : 'Deposit'}
                 </button>
               )}
             </>
           ) : (
-            <p className="text-gray-400">Connect wallet to deposit</p>
+            <p className="text-neutral-400">Connect wallet to deposit</p>
           )}
         </div>
       </div>

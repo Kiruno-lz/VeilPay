@@ -3,6 +3,7 @@ import { useAppState } from '../context/useAppState';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { CloakSDK } from '../lib/cloak';
 import { generateClaimLink } from '../lib/claimLink';
+import { cn } from '../lib/utils';
 import type { Recipient, ClaimLink } from '../types';
 
 interface DisburseFormProps {
@@ -163,14 +164,10 @@ function DisburseForm({ className }: DisburseFormProps) {
   return (
     <div
       data-testid="disburse-form"
-      className={`bg-gray-800 border border-gray-700 rounded-lg p-6 ${className || ''}`}
+      className={cn(className)}
     >
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-          3
-        </div>
-        <div className="flex-1">
-          <h3 className="text-white font-semibold mb-4">Disburse</h3>
+      <div className="flex-1">
+        <h3 className="text-white font-semibold mb-4">Disburse</h3>
 
           {recipients.length === 0 ? (
             <div className="bg-gray-700 rounded-lg p-4 mb-4">
@@ -202,101 +199,100 @@ function DisburseForm({ className }: DisburseFormProps) {
             </div>
           )}
 
-          {isDisbursing && (
-            <div className="mb-4" data-testid="progress-section">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-300">Progress</span>
-                <span className="text-white">
-                  {disbursement.progress} / {recipients.length} processed
-                </span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progressPercent}%` }}
-                  data-testid="progress-bar"
-                />
-              </div>
+        {isDisbursing && (
+          <div className="mb-4" data-testid="progress-section">
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-neutral-100">Progress</span>
+              <span className="text-neutral-100">
+                {disbursement.progress} / {recipients.length} processed
+              </span>
             </div>
-          )}
-
-          {disbursement.status === 'completed' && (
-            <div className="mb-4" data-testid="completed-section">
-              <p className="text-green-400 text-sm mb-2" data-testid="completion-message">
-                Disbursement completed! {disbursement.claimLinks.length} claim link{disbursement.claimLinks.length !== 1 ? 's' : ''} generated.
-              </p>
-              <div className="space-y-2">
-                <p className="text-gray-300 text-sm font-semibold">Claim Links:</p>
-                {disbursement.claimLinks.map((link, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 bg-gray-700 rounded-lg p-2"
-                    data-testid={`claim-link-${index}`}
-                  >
-                    <button
-                      onClick={() => handleCopyLink(link.url, index)}
-                      className="flex-1 text-left text-sm text-blue-400 hover:text-blue-300 truncate font-mono"
-                      title="Click to copy"
-                    >
-                      {link.recipient} — {(link.amount / 1_000_000).toFixed(2)} USDC
-                    </button>
-                    {copiedIndex === index && (
-                      <span className="text-green-400 text-xs" data-testid={`copied-${index}`}>
-                        Copied!
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+            <div className="w-full bg-neutral-700 rounded-full h-2">
+              <div
+                className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+                data-testid="progress-bar"
+              />
             </div>
-          )}
+          </div>
+        )}
 
-          {disbursement.status === 'error' && errorMessage && (
-            <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 mb-4" data-testid="error-section">
-              <p className="text-red-400 text-sm mb-2">
-                Error: {errorMessage}
-              </p>
-              {errorRecipient && (
-                <p className="text-gray-400 text-xs mb-3">
-                  Failed recipient: {errorRecipient.address.slice(0, 8)}...{errorRecipient.address.slice(-8)}
-                </p>
-              )}
-              <div className="flex gap-2">
-                <button
-                  onClick={handleRetry}
-                  className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-500"
-                  data-testid="retry-button"
-                >
-                  Retry
-                </button>
-                <button
-                  onClick={handleSkip}
-                  className="flex-1 bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-500"
-                  data-testid="skip-button"
-                >
-                  Skip
-                </button>
-              </div>
-            </div>
-          )}
-
-          {disbursement.status !== 'error' && (
-            <button
-              onClick={handleDisburse}
-              disabled={!canDisburse}
-              className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500"
-              data-testid="disburse-button"
-            >
-              {isDisbursing ? 'Disbursing...' : 'Disburse'}
-            </button>
-          )}
-
-          {!connected && recipients.length > 0 && disbursement.status === 'idle' && (
-            <p className="text-gray-400 text-sm mt-2 text-center" data-testid="connect-wallet-message">
-              Connect wallet to disburse
+        {disbursement.status === 'completed' && (
+          <div className="mb-4" data-testid="completed-section">
+            <p className="text-success-500 text-sm mb-2" data-testid="completion-message">
+              Disbursement completed! {disbursement.claimLinks.length} claim link{disbursement.claimLinks.length !== 1 ? 's' : ''} generated.
             </p>
-          )}
-        </div>
+            <div className="space-y-2">
+              <p className="text-neutral-100 text-sm font-semibold">Claim Links:</p>
+              {disbursement.claimLinks.map((link, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-neutral-700 rounded-lg p-2"
+                  data-testid={`claim-link-${index}`}
+                >
+                  <button
+                    onClick={() => handleCopyLink(link.url, index)}
+                    className="flex-1 text-left text-sm text-primary-400 hover:text-primary-300 truncate font-mono"
+                    title="Click to copy"
+                  >
+                    {link.recipient} — {(link.amount / 1_000_000).toFixed(2)} USDC
+                  </button>
+                  {copiedIndex === index && (
+                    <span className="text-success-500 text-xs" data-testid={`copied-${index}`}>
+                      Copied!
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {disbursement.status === 'error' && errorMessage && (
+          <div className="bg-error-500/10 border border-error-500/20 rounded-lg p-4 mb-4" data-testid="error-section">
+            <p className="text-error-500 text-sm mb-2">
+              Error: {errorMessage}
+            </p>
+            {errorRecipient && (
+              <p className="text-neutral-400 text-xs mb-3">
+                Failed recipient: {errorRecipient.address.slice(0, 8)}...{errorRecipient.address.slice(-8)}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleRetry}
+                className="flex-1 bg-primary-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary-600"
+                data-testid="retry-button"
+              >
+                Retry
+              </button>
+              <button
+                onClick={handleSkip}
+                className="flex-1 bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-neutral-500"
+                data-testid="skip-button"
+              >
+                Skip
+              </button>
+            </div>
+          </div>
+        )}
+
+        {disbursement.status !== 'error' && (
+          <button
+            onClick={handleDisburse}
+            disabled={!canDisburse}
+            className="w-full bg-primary-500 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-neutral-700 disabled:cursor-not-allowed hover:bg-primary-600"
+            data-testid="disburse-button"
+          >
+            {isDisbursing ? 'Disbursing...' : 'Disburse'}
+          </button>
+        )}
+
+        {!connected && recipients.length > 0 && disbursement.status === 'idle' && (
+          <p className="text-neutral-400 text-sm mt-2 text-center" data-testid="connect-wallet-message">
+            Connect wallet to disburse
+          </p>
+        )}
       </div>
     </div>
   );
