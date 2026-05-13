@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useAppState } from '../context/useAppState'
 import type { ViewingKey } from '../types'
+import { cn } from '../lib/utils'
 
 interface AuditDashboardProps {
   className?: string
@@ -77,86 +78,78 @@ function AuditDashboard({ className }: AuditDashboardProps) {
   }
 
   return (
-    <div
-      data-testid="audit-dashboard"
-      className={`bg-gray-800 border border-gray-700 rounded-lg p-6 ${className || ''}`}
-    >
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-          4
-        </div>
-        <div className="flex-1">
-          <h3 className="text-white font-semibold mb-4">Audit</h3>
-          <input
-            type="text"
-            placeholder="Enter viewing key"
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-500 mb-4"
-          />
-          <button
-            onClick={handleGenerateKey}
-            disabled={generating}
-            className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg mb-4 disabled:opacity-50"
-          >
-            {generating ? 'Generating...' : 'Generate Key'}
-          </button>
-          <div className="bg-gray-700 rounded-lg p-4">
-            {viewingKeys.length === 0 ? (
-              <p className="text-gray-400 text-center">Viewing keys will appear here</p>
-            ) : (
-              <div className="space-y-3">
-                {viewingKeys.map((key, index) => (
-                  <div
-                    key={key.id}
-                    data-testid={`key-row-${index}`}
-                    className={`bg-gray-800 rounded-lg p-3 border border-gray-600 ${
-                      key.status === 'revoked' ? 'opacity-50 grayscale' : ''
-                    }`}
+    <div data-testid="audit-dashboard" className={cn(className)}>
+      <h3 className="text-neutral-100 font-semibold mb-4">Audit</h3>
+      <input
+        type="text"
+        placeholder="Enter viewing key"
+        className="w-full bg-neutral-800 border border-neutral-600 rounded-lg px-4 py-2 text-neutral-100 placeholder-neutral-500 mb-4"
+      />
+      <button
+        onClick={handleGenerateKey}
+        disabled={generating}
+        className="w-full bg-primary-500 hover:bg-primary-600 text-neutral-0 font-semibold py-2 px-4 rounded-lg mb-4 disabled:opacity-50"
+      >
+        {generating ? 'Generating...' : 'Generate Key'}
+      </button>
+      <div className="bg-neutral-800 rounded-lg p-4">
+        {viewingKeys.length === 0 ? (
+          <p className="text-neutral-400 text-center">Viewing keys will appear here</p>
+        ) : (
+          <div className="space-y-3">
+            {viewingKeys.map((key, index) => (
+              <div
+                key={key.id}
+                data-testid={`key-row-${index}`}
+                className={cn(
+                  'bg-neutral-800 rounded-lg p-3 border border-neutral-600',
+                  key.status === 'revoked' && 'opacity-50 grayscale'
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <code className="text-xs text-primary-300 font-mono break-all">{key.key}</code>
+                  <button
+                    data-testid={`copy-key-${index}`}
+                    onClick={() => handleCopyKey(key.key)}
+                    className="ml-2 text-xs bg-neutral-600 hover:bg-neutral-500 text-neutral-0 px-2 py-1 rounded"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <code className="text-xs text-blue-300 break-all">{key.key}</code>
-                      <button
-                        data-testid={`copy-key-${index}`}
-                        onClick={() => handleCopyKey(key.key)}
-                        className="ml-2 text-xs bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded"
-                      >
-                        Copy
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-blue-900 text-blue-200 px-2 py-0.5 rounded">
-                        Scope: {key.scope}
-                      </span>
-                      <span className="bg-green-900 text-green-200 px-2 py-0.5 rounded">
-                        Created: {formatDate(key.createdAt)}
-                      </span>
-                      <span className="bg-yellow-900 text-yellow-200 px-2 py-0.5 rounded">
-                        Expires: {getDaysUntilExpiry(key.expiry)}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded ${
-                          key.status === 'active'
-                            ? 'bg-green-900 text-green-200'
-                            : 'bg-red-900 text-red-200'
-                        }`}
-                      >
-                        {key.status === 'active' ? 'Active' : 'Revoked'}
-                      </span>
-                    </div>
-                    {key.status === 'active' && (
-                      <button
-                        data-testid={`revoke-key-${index}`}
-                        onClick={() => handleRevokeKey(key.id)}
-                        className="mt-2 text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded"
-                      >
-                        Revoke
-                      </button>
+                    Copy
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="bg-primary-900 text-primary-200 px-2 py-0.5 rounded">
+                    Scope: {key.scope}
+                  </span>
+                  <span className="bg-success-500/10 text-success-500 px-2 py-0.5 rounded">
+                    Created: {formatDate(key.createdAt)}
+                  </span>
+                  <span className="bg-secondary-500/10 text-secondary-400 px-2 py-0.5 rounded">
+                    Expires: {getDaysUntilExpiry(key.expiry)}
+                  </span>
+                  <span
+                    className={cn(
+                      'px-2 py-0.5 rounded',
+                      key.status === 'active'
+                        ? 'bg-success-500/10 text-success-500'
+                        : 'bg-error-500/10 text-error-500'
                     )}
-                  </div>
-                ))}
+                  >
+                    {key.status === 'active' ? 'Active' : 'Revoked'}
+                  </span>
+                </div>
+                {key.status === 'active' && (
+                  <button
+                    data-testid={`revoke-key-${index}`}
+                    onClick={() => handleRevokeKey(key.id)}
+                    className="mt-2 text-xs bg-error-500 hover:bg-error-600 text-neutral-0 px-2 py-1 rounded"
+                  >
+                    Revoke
+                  </button>
+                )}
               </div>
-            )}
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

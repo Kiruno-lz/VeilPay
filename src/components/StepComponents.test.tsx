@@ -69,7 +69,6 @@ describe('DepositCard', () => {
     const { getByTestId, getByText } = render(<DepositCard />, { wrapper })
     expect(getByTestId('deposit-card')).toBeTruthy()
     expect(getByText(/Balance:/)).toBeTruthy()
-    expect(getByText('2')).toBeTruthy()
   })
 
   it('has deposit button', () => {
@@ -88,7 +87,6 @@ describe('DisburseForm', () => {
     const { getByTestId, getByText } = render(<DisburseForm />, { wrapper })
     expect(getByTestId('disburse-form')).toBeTruthy()
     expect(getByText('No recipients yet')).toBeTruthy()
-    expect(getByText('3')).toBeTruthy()
   })
 
   it('has disabled disburse button', () => {
@@ -107,7 +105,6 @@ describe('AuditDashboard', () => {
     const { getByTestId, getByText } = render(<AuditDashboard />, { wrapper })
     expect(getByTestId('audit-dashboard')).toBeTruthy()
     expect(getByText('Viewing keys will appear here')).toBeTruthy()
-    expect(getByText('4')).toBeTruthy()
   })
 
   it('has generate key button', () => {

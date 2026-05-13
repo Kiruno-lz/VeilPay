@@ -4,7 +4,6 @@ import DepositCard from '../components/DepositCard'
 import DisburseForm from '../components/DisburseForm'
 import AuditDashboard from '../components/AuditDashboard'
 import Card from '../components/ui/Card'
-import Button from '../components/ui/Button'
 import { useWalletBalance } from '../hooks/useWalletBalance'
 import { useAppState } from '../context/useAppState'
 import { cn } from '../lib/utils'
@@ -21,14 +20,6 @@ function AdminPage() {
   ]
 
   const currentStep = state.ui.currentStep
-  const recipientsCount = state.recipients.length
-
-  const scrollToStep = (stepNumber: number) => {
-    const el = document.getElementById(`step-${stepNumber}`)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
 
   const formatUsdc = (value: number | null) => {
     if (value === null) return '—'
@@ -57,59 +48,37 @@ function AdminPage() {
       {/* 2. Hero Section — full-width color block */}
       <section
         data-testid="hero-section"
-        className="relative bg-primary-900 py-16 px-6 overflow-hidden"
+        className="bg-primary-950 py-16 px-6"
       >
-        {/* Subtle grid pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, var(--neutral-0, #fff) 1px, transparent 1px), linear-gradient(to bottom, var(--neutral-0, #fff) 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-          }}
-        />
-        <div className="relative max-w-5xl mx-auto">
-          <h1 className="text-4xl font-bold text-neutral-0 mb-4">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-5xl font-extrabold text-neutral-0 mb-4">
             Pay your team privately
           </h1>
-          <p className="text-lg text-primary-200 max-w-2xl mb-8">
-            Batch disburse USDC on Solana without exposing amounts or recipients on-chain.
+          <p className="text-lg text-primary-200 max-w-2xl">
+            Private USDC payroll on Solana.
           </p>
-          <Button onClick={() => scrollToStep(1)} size="lg">
-            Get Started
-          </Button>
         </div>
       </section>
 
       {/* Main content area */}
-      <main className="max-w-5xl mx-auto px-4 md:px-6 py-8 pb-12">
-        {/* 3. Stats Row — 3-column grid of color block cards */}
-        <section data-testid="stats-section" className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card variant="default">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-8 pb-12 space-y-12">
+        {/* 3. Stats Row — 2 full-width color blocks */}
+        <section data-testid="stats-section" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-xl p-6 bg-neutral-800">
             <p className="text-sm text-neutral-400 mb-1">USDC Balance</p>
-            <p className="text-3xl font-bold text-neutral-0 font-mono">
+            <p className="text-4xl font-bold text-neutral-0 font-mono">
               ${formatUsdc(publicUsdc)}
             </p>
             <p className="text-sm text-success-500 mt-1">Public wallet</p>
-          </Card>
+          </div>
 
-          <Card variant="color-block">
-            <p className="text-sm text-primary-200 mb-1">Shielded in Pool</p>
-            <p className="text-3xl font-bold text-neutral-0 font-mono">
+          <div className="rounded-xl p-6 bg-primary-500">
+            <p className="text-sm text-primary-100 mb-1">Shielded in Pool</p>
+            <p className="text-4xl font-bold text-neutral-0 font-mono">
               ${formatUsdc(shieldedUsdc)}
             </p>
-            <p className="text-sm text-primary-300 mt-1">Cloak pool</p>
-          </Card>
-
-          <Card variant="default">
-            <p className="text-sm text-neutral-400 mb-1">Pending Recipients</p>
-            <p className="text-3xl font-bold text-neutral-0 font-mono">
-              {recipientsCount}
-            </p>
-            <p className="text-sm text-neutral-500 mt-1">
-              {recipientsCount === 1 ? '1 recipient' : `${recipientsCount} recipients`} loaded
-            </p>
-          </Card>
+            <p className="text-sm text-primary-100 mt-1">Cloak pool</p>
+          </div>
         </section>
 
         {/* 4. Step Sections */}
@@ -117,62 +86,37 @@ function AdminPage() {
           {steps.map((step) => {
             const isActive = step.number === currentStep
             return (
-              <section
+              <Card
                 key={step.number}
                 id={`step-${step.number}`}
                 data-testid={`step-${step.number}`}
+                className={cn(
+                  isActive
+                    ? 'bg-primary-500 text-neutral-0'
+                    : 'bg-neutral-800 text-neutral-100'
+                )}
               >
-                <Card
-                  variant="left-accent"
-                  className={cn(
-                    isActive &&
-                      'ring-1 ring-primary-500/40 shadow-lg shadow-primary-500/10'
-                  )}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <span
-                      className={cn(
-                        'flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold',
-                        isActive
-                          ? 'bg-primary-500 text-neutral-0'
-                          : 'bg-neutral-700 text-neutral-400 border border-neutral-600'
-                      )}
-                    >
-                      {step.number}
-                    </span>
-                    <h2 className="text-lg font-semibold text-neutral-100">
+                <div className="flex items-start gap-4">
+                  <span className={cn(
+                    'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold',
+                    isActive
+                      ? 'bg-neutral-0 text-primary-500'
+                      : 'bg-primary-500 text-neutral-0'
+                  )}>
+                    {step.number}
+                  </span>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold mb-4">
                       {step.title}
                     </h2>
+                    <div>{step.component}</div>
                   </div>
-                  <div className="ml-11">{step.component}</div>
-                </Card>
-              </section>
+                </div>
+              </Card>
             )
           })}
         </section>
       </main>
-
-      {/* 5. Footer CTA — Full-width primary-500 color block */}
-      <footer data-testid="footer-cta" className="bg-primary-500 py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <p className="text-xl font-semibold text-neutral-0">
-              Ready to disburse?
-            </p>
-            <p className="text-sm text-primary-100 mt-1">
-              All recipients loaded and funds deposited — go ahead.
-            </p>
-          </div>
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={() => scrollToStep(3)}
-            className="shrink-0"
-          >
-            Go to Disburse
-          </Button>
-        </div>
-      </footer>
     </div>
   )
 }
