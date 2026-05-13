@@ -29,6 +29,14 @@ export interface ViewingKey {
   status: 'active' | 'revoked';
 }
 
+export interface TransactionRecord {
+  date: Date;
+  amount: number;
+  recipient: string;
+  type: 'deposit' | 'transfer' | 'receive';
+  txHash: string;
+}
+
 export interface AppState {
   wallet: {
     connected: boolean;

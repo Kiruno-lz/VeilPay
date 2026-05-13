@@ -62,7 +62,7 @@ describe('UploadCSV', () => {
     });
 
     const invalidRow = getByTestId('csv-row-0');
-    expect(invalidRow.className).toContain('bg-red-500/10');
+    expect(invalidRow.className).toContain('bg-error-500/10');
   });
 
   it('dispatches SET_RECIPIENTS to global state on valid CSV', async () => {
@@ -100,10 +100,10 @@ describe('UploadCSV', () => {
     const dropZone = getByTestId('drop-zone');
 
     fireEvent.dragOver(dropZone);
-    expect(dropZone.className).toContain('border-blue-500');
+    expect(dropZone.className).toContain('border-primary-500');
 
     fireEvent.dragLeave(dropZone);
-    expect(dropZone.className).not.toContain('border-blue-500');
+    expect(dropZone.className).not.toContain('border-primary-500');
   });
 
   it('handles drop event with file', async () => {
@@ -147,18 +147,18 @@ describe('UploadCSV', () => {
 
     // Row 0: invalid address should be highlighted
     const invalidRow = getByTestId('csv-row-0');
-    expect(invalidRow.className).toContain('bg-red-500/10');
+    expect(invalidRow.className).toContain('bg-error-500/10');
     expect(invalidRow.title).toContain('Invalid Solana address');
 
     // Row 1: valid
     const validRow1 = getByTestId('csv-row-1');
-    expect(validRow1.className).not.toContain('bg-red-500/10');
-    expect(validRow1.className).toContain('bg-gray-800');
+    expect(validRow1.className).not.toContain('bg-error-500/10');
+    expect(validRow1.className).toContain('bg-neutral-800');
 
     // Row 2: valid
     const validRow2 = getByTestId('csv-row-2');
-    expect(validRow2.className).not.toContain('bg-red-500/10');
-    expect(validRow2.className).toContain('bg-gray-800');
+    expect(validRow2.className).not.toContain('bg-error-500/10');
+    expect(validRow2.className).toContain('bg-neutral-800');
 
     // Total should only include valid rows
     expect(getByTestId('csv-total').textContent).toContain('125.00 USDC');

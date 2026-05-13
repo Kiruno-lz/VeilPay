@@ -59,8 +59,8 @@ describe('AdminPage', () => {
 
   it('should render 4 step sections', () => {
     const { container } = render(<AdminPage />, { wrapper: Wrapper });
-    const sections = container.querySelectorAll('section');
-    expect(sections.length).toBe(4);
+    const stepSections = container.querySelectorAll('[data-testid^="step-"]');
+    expect(stepSections.length).toBe(4);
   });
 
   it('should render step numbers 1-4', () => {
@@ -83,9 +83,9 @@ describe('AdminPage', () => {
     expect(titles).toContain('Audit');
   });
 
-  it('should render header with VeilPay Admin title', () => {
+  it('should render header with VeilPay logo', () => {
     const { getByText } = render(<AdminPage />, { wrapper: Wrapper });
-    expect(getByText('VeilPay Admin')).toBeTruthy();
+    expect(getByText('VeilPay')).toBeTruthy();
   });
 
   it('should render UploadCSV placeholder', () => {

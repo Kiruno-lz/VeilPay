@@ -1,9 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Primary - Teal/Cyan */
+    --primary-50: oklch(97% 0.02 195);
+    --primary-100: oklch(93% 0.04 195);
+    --primary-200: oklch(85% 0.08 195);
+    --primary-300: oklch(75% 0.12 195);
+    --primary-400: oklch(65% 0.14 195);
+    --primary-500: oklch(55% 0.15 195);
+    --primary-600: oklch(48% 0.14 195);
+    --primary-700: oklch(40% 0.12 195);
+    --primary-800: oklch(32% 0.09 195);
+    --primary-900: oklch(24% 0.06 195);
+    --primary-950: oklch(18% 0.04 195);
+
+    /* Secondary - Amber */
+    --secondary-50: oklch(97% 0.02 85);
+    --secondary-100: oklch(93% 0.04 85);
+    --secondary-200: oklch(85% 0.08 85);
+    --secondary-300: oklch(75% 0.12 85);
+    --secondary-400: oklch(68% 0.14 85);
+    --secondary-500: oklch(60% 0.15 85);
+    --secondary-600: oklch(52% 0.13 85);
+    --secondary-700: oklch(44% 0.11 85);
+    --secondary-800: oklch(35% 0.08 85);
+    --secondary-900: oklch(26% 0.05 85);
+    --secondary-950: oklch(20% 0.03 85);
+
+    /* Neutral - Tinted toward teal */
+    --neutral-0: oklch(100% 0 195);
+    --neutral-50: oklch(97% 0.005 195);
+    --neutral-100: oklch(92% 0.01 195);
+    --neutral-200: oklch(82% 0.015 195);
+    --neutral-300: oklch(70% 0.02 195);
+    --neutral-400: oklch(58% 0.02 195);
+    --neutral-500: oklch(48% 0.02 195);
+    --neutral-600: oklch(38% 0.015 195);
+    --neutral-700: oklch(28% 0.01 195);
+    --neutral-800: oklch(20% 0.008 195);
+    --neutral-900: oklch(14% 0.005 195);
+    --neutral-950: oklch(10% 0.003 195);
+
+    /* Semantic */
+    --success-500: oklch(65% 0.18 145);
+    --success-600: oklch(58% 0.16 145);
+    --error-500: oklch(58% 0.18 25);
+    --error-600: oklch(52% 0.16 25);
+  }
+
   body {
-    @apply bg-gray-900 text-white;
+    background-color: var(--neutral-900);
+    color: var(--neutral-100);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Focus visible styles */
+  :focus-visible {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
   }
 }

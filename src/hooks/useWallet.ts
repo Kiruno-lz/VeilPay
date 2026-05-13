@@ -10,6 +10,7 @@ export interface UseWalletReturn {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   selectWallet: (walletName: string) => void;
+  signTransaction: ((transaction: any) => Promise<any>) | undefined;
 }
 
 export function useWallet(): UseWalletReturn {
@@ -62,5 +63,6 @@ export function useWallet(): UseWalletReturn {
     connect,
     disconnect,
     selectWallet,
+    signTransaction: solanaWallet.signTransaction,
   };
 }

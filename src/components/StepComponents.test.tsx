@@ -56,7 +56,6 @@ describe('UploadCSV', () => {
     expect(getByTestId('upload-csv')).toBeTruthy()
     expect(getByText(/Drag/)).toBeTruthy()
     expect(getByText(/click to browse/)).toBeTruthy()
-    expect(getByText('1')).toBeTruthy()
   })
 
   it('applies className prop', () => {
